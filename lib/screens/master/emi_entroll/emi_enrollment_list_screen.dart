@@ -5,6 +5,9 @@ import 'package:intl/intl.dart';
 import 'package:sri_murugan_chits/models/emi_entroll/emi_enrollment_model.dart';
 import 'package:sri_murugan_chits/screens/master/emi_entroll/emi_enrollment_controller.dart';
 import 'package:sri_murugan_chits/screens/master/emi_entroll/emi_enrollment_detail_screen.dart';
+import 'package:sri_murugan_chits/utils/colors/app_colors.dart';
+import 'package:sri_murugan_chits/utils/global/app_text_style.dart';
+// import 'package:sri_murugan_chits/utils/text_styles/app_text_style.dart';
 
 class EmiEnrollmentListScreen extends StatelessWidget {
   const EmiEnrollmentListScreen({super.key});
@@ -16,17 +19,15 @@ class EmiEnrollmentListScreen extends StatelessWidget {
     );
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF6F7FB),
+      backgroundColor: AppColors.scaffold,
 
       appBar: AppBar(
-        title: const Text(
+        title: Text(
           'EMI Enrollments',
-          style: TextStyle(
-            fontWeight: FontWeight.w600,
-          ),
+          style: AppTextStyle.semiBoldLarge,
         ),
-        backgroundColor: Colors.white,
-        foregroundColor: const Color(0xFF1F2937),
+        backgroundColor: AppColors.white,
+        foregroundColor: AppColors.black,
         elevation: 0,
       ),
 
@@ -37,7 +38,7 @@ class EmiEnrollmentListScreen extends StatelessWidget {
           // ======================================================
 
           Container(
-            color: Colors.white,
+            color: AppColors.white,
             padding: const EdgeInsets.fromLTRB(
               16,
               12,
@@ -49,9 +50,13 @@ class EmiEnrollmentListScreen extends StatelessWidget {
                 TextField(
                   controller: controller.searchController,
                   onChanged: controller.onSearchChanged,
+                  style: AppTextStyle.regular,
                   decoration: InputDecoration(
                     hintText:
                         'Search customer, phone or scheme...',
+                    hintStyle: AppTextStyle.regular.copyWith(
+                      color: Colors.grey.shade500,
+                    ),
                     prefixIcon:
                         const Icon(Icons.search),
                     suffixIcon: Obx(
@@ -73,8 +78,7 @@ class EmiEnrollmentListScreen extends StatelessWidget {
                       },
                     ),
                     filled: true,
-                    fillColor:
-                        const Color(0xFFF6F7FB),
+                    fillColor: AppColors.scaffold,
                     border: OutlineInputBorder(
                       borderRadius:
                           BorderRadius.circular(12),
@@ -90,12 +94,9 @@ class EmiEnrollmentListScreen extends StatelessWidget {
                   () {
                     return Row(
                       children: [
-                        const Text(
+                        Text(
                           'Status:',
-                          style: TextStyle(
-                            fontWeight:
-                                FontWeight.w600,
-                          ),
+                          style: AppTextStyle.semiBold,
                         ),
 
                         const SizedBox(width: 10),
@@ -104,7 +105,7 @@ class EmiEnrollmentListScreen extends StatelessWidget {
                           child:
                               DropdownButtonFormField<
                                   String>(
-                            value: controller
+                            initialValue: controller
                                     .selectedStatus
                                     .value
                                     .isEmpty
@@ -112,6 +113,7 @@ class EmiEnrollmentListScreen extends StatelessWidget {
                                 : controller
                                     .selectedStatus
                                     .value,
+                            style: AppTextStyle.regular,
                             decoration:
                                 InputDecoration(
                               contentPadding:
@@ -121,10 +123,7 @@ class EmiEnrollmentListScreen extends StatelessWidget {
                                 vertical: 10,
                               ),
                               filled: true,
-                              fillColor:
-                                  const Color(
-                                0xFFF6F7FB,
-                              ),
+                              fillColor: AppColors.scaffold,
                               border:
                                   OutlineInputBorder(
                                 borderRadius:
@@ -195,16 +194,13 @@ class EmiEnrollmentListScreen extends StatelessWidget {
                     child: ListView(
                       physics:
                           const AlwaysScrollableScrollPhysics(),
-                      children: const [
-                        SizedBox(height: 160),
+                      children: [
+                        const SizedBox(height: 160),
                         Center(
                           child: Text(
                             'No EMI enrollments found',
-                            style: TextStyle(
-                              color:
-                                  Colors.grey,
-                              fontSize: 15,
-                            ),
+                            style: AppTextStyle.regular
+                                .copyWith(color: Colors.grey),
                           ),
                         ),
                       ],
@@ -270,7 +266,7 @@ class EmiEnrollmentListScreen extends StatelessWidget {
 }
 
 // ================================================================
-// ENROLLMENT CARD
+// ENROLLMENT CARD  (uses AppColors / AppTextStyle theme)
 // ================================================================
 
 class _EnrollmentCard extends StatelessWidget {
@@ -284,65 +280,52 @@ class _EnrollmentCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final status =
-        enrollment.status ?? 'Unknown';
+    final status = enrollment.status ?? 'Unknown';
+    final initial = (enrollment.customerName ?? 'U').trim().isNotEmpty
+        ? enrollment.customerName!.trim()[0].toUpperCase()
+        : 'U';
 
     return Container(
-      margin:
-          const EdgeInsets.only(bottom: 14),
-
+      margin: const EdgeInsets.only(bottom: 14),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius:
-            BorderRadius.circular(16),
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(18),
         boxShadow: [
           BoxShadow(
-            color:
-                Colors.black.withOpacity(0.04),
+            color: Colors.black.withOpacity(0.04),
             blurRadius: 10,
-            offset:
-                const Offset(0, 3),
+            offset: const Offset(0, 3),
           ),
         ],
       ),
-
       child: InkWell(
         onTap: onTap,
-        borderRadius:
-            BorderRadius.circular(16),
-
+        borderRadius: BorderRadius.circular(18),
         child: Padding(
-          padding:
-              const EdgeInsets.all(16),
-
+          padding: const EdgeInsets.all(16),
           child: Column(
-            crossAxisAlignment:
-                CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // ==================================================
-              // CUSTOMER
+              // CUSTOMER HEADER — avatar + name + phone + status
               // ==================================================
-
               Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
+                  // Circular initial avatar (uses primary color tint)
                   Container(
-                    width: 46,
-                    height: 46,
-                    decoration:
-                        BoxDecoration(
-                      color:
-                          const Color(
-                        0xFFFFF3E0,
-                      ),
-                      borderRadius:
-                          BorderRadius.circular(
-                        12,
-                      ),
+                    width: 48,
+                    height: 48,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      color: AppColors.primary.withOpacity(0.18),
+                      shape: BoxShape.circle,
                     ),
-                    child: const Icon(
-                      Icons.person_outline,
-                      color:
-                          Color(0xFFF57C00),
+                    child: Text(
+                      initial,
+                      style: AppTextStyle.semiBoldLarge.copyWith(
+                        color: const Color(0xFF8A7B00),
+                      ),
                     ),
                   ),
 
@@ -351,211 +334,92 @@ class _EnrollmentCard extends StatelessWidget {
                   Expanded(
                     child: Column(
                       crossAxisAlignment:
-                          CrossAxisAlignment
-                              .start,
+                          CrossAxisAlignment.start,
                       children: [
                         Text(
-                          enrollment
-                                  .customerName ??
+                          enrollment.customerName ??
                               'Unknown Customer',
                           maxLines: 1,
-                          overflow:
-                              TextOverflow
-                                  .ellipsis,
-                          style:
-                              const TextStyle(
-                            fontSize: 16,
-                            fontWeight:
-                                FontWeight.w600,
-                            color:
-                                Color(
-                              0xFF1F2937,
-                            ),
+                          overflow: TextOverflow.ellipsis,
+                          style: AppTextStyle.semiBoldLarge,
+                        ),
+                        const SizedBox(height: 3),
+                        Text(
+                          enrollment.customerPhone ?? '',
+                          style: AppTextStyle.regularSmall.copyWith(
+                            color: Colors.grey.shade600,
                           ),
                         ),
-
-                        const SizedBox(height: 4),
-
+                        const SizedBox(height: 2),
                         Text(
-                          enrollment
-                                  .customerPhone ??
-                              '',
-                          style:
-                              TextStyle(
-                            fontSize: 13,
-                            color: Colors
-                                .grey
-                                .shade600,
+                          '${enrollment.schemeName ?? 'EMI Scheme'} · ${enrollment.weeks ?? 0} weeks',
+                          style: AppTextStyle.regularSmall.copyWith(
+                            color: Colors.grey.shade500,
                           ),
                         ),
                       ],
                     ),
                   ),
 
-                  _StatusBadge(
-                    status: status,
-                  ),
+                  _StatusBadge(status: status),
                 ],
               ),
 
               const SizedBox(height: 14),
-
               const Divider(height: 1),
-
-              const SizedBox(height: 14),
+              const SizedBox(height: 6),
 
               // ==================================================
-              // SCHEME
+              // SUMMARY ROWS — color-coded like reference screen
               // ==================================================
+              _SummaryRow(
+                label: 'Requested',
+                value: enrollment.requestedAmount ?? 0,
+                valueColor: AppColors.black,
+              ),
+              _SummaryRow(
+                label: 'Commission',
+                value: enrollment.commissionAmount ?? 0,
+                valueColor: const Color(0xFFC62828),
+              ),
+              _SummaryRow(
+                label: 'Disbursed',
+                value: enrollment.disbursedAmount ?? 0,
+                valueColor: const Color(0xFF2E7D32),
+                showDivider: false,
+              ),
 
+              const SizedBox(height: 10),
+
+              // ==================================================
+              // FOOTER — start date + id + arrow
+              // ==================================================
               Row(
                 children: [
-                  const Icon(
-                    Icons
-                        .account_balance_wallet_outlined,
-                    size: 18,
-                    color:
-                        Color(0xFF6B7280),
+                  Icon(
+                    Icons.date_range_outlined,
+                    size: 16,
+                    color: Colors.grey.shade600,
                   ),
-
-                  const SizedBox(width: 8),
-
-                  Expanded(
-                    child: Text(
-                      enrollment
-                              .schemeName ??
-                          'EMI Scheme',
-                      style:
-                          const TextStyle(
-                        fontWeight:
-                            FontWeight.w600,
-                        color:
-                            Color(0xFF374151),
-                      ),
+                  const SizedBox(width: 6),
+                  Text(
+                    _formatDate(enrollment.startDate),
+                    style: AppTextStyle.regularSmall.copyWith(
+                      color: Colors.grey.shade700,
                     ),
                   ),
-
+                  const SizedBox(width: 14),
                   Text(
                     '#${enrollment.id ?? '-'}',
-                    style:
-                        TextStyle(
-                      fontSize: 12,
-                      color: Colors
-                          .grey
-                          .shade500,
+                    style: AppTextStyle.regularSmall.copyWith(
+                      color: Colors.grey.shade500,
                     ),
                   ),
-                ],
-              ),
-
-              const SizedBox(height: 14),
-
-              // ==================================================
-              // AMOUNT ROW
-              // ==================================================
-
-              Row(
-                children: [
-                  Expanded(
-                    child:
-                        _AmountItem(
-                      label:
-                          'Requested',
-                      value:
-                          enrollment
-                                  .requestedAmount ??
-                              0,
-                    ),
-                  ),
-
-                  Expanded(
-                    child:
-                        _AmountItem(
-                      label:
-                          'Commission',
-                      value:
-                          enrollment
-                                  .commissionAmount ??
-                              0,
-                    ),
-                  ),
-
-                  Expanded(
-                    child:
-                        _AmountItem(
-                      label:
-                          'Disbursed',
-                      value:
-                          enrollment
-                                  .disbursedAmount ??
-                              0,
-                    ),
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 14),
-
-              // ==================================================
-              // FOOTER
-              // ==================================================
-
-              Row(
-                children: [
-                  const Icon(
-                    Icons
-                        .calendar_month_outlined,
-                    size: 17,
-                    color:
-                        Color(0xFF6B7280),
-                  ),
-
-                  const SizedBox(width: 6),
-
-                  Text(
-                    '${enrollment.weeks ?? 0} weeks',
-                    style:
-                        TextStyle(
-                      fontSize: 13,
-                      color: Colors
-                          .grey
-                          .shade700,
-                    ),
-                  ),
-
-                  const SizedBox(width: 14),
-
-                  const Icon(
-                    Icons
-                        .date_range_outlined,
-                    size: 17,
-                    color:
-                        Color(0xFF6B7280),
-                  ),
-
-                  const SizedBox(width: 6),
-
-                  Text(
-                    _formatDate(
-                      enrollment.startDate,
-                    ),
-                    style:
-                        TextStyle(
-                      fontSize: 13,
-                      color: Colors
-                          .grey
-                          .shade700,
-                    ),
-                  ),
-
                   const Spacer(),
-
-                  const Icon(
-                    Icons
-                        .arrow_forward_ios_rounded,
-                    size: 15,
-                    color:
-                        Color(0xFF9CA3AF),
+                  Icon(
+                    Icons.arrow_forward_ios_rounded,
+                    size: 14,
+                    color: Colors.grey.shade400,
                   ),
                 ],
               ),
@@ -567,17 +431,11 @@ class _EnrollmentCard extends StatelessWidget {
   }
 
   String _formatDate(String? value) {
-    if (value == null ||
-        value.isEmpty) {
+    if (value == null || value.isEmpty) {
       return '-';
     }
-
     try {
-      return DateFormat(
-        'dd MMM yyyy',
-      ).format(
-        DateTime.parse(value),
-      );
+      return DateFormat('dd MMM yyyy').format(DateTime.parse(value));
     } catch (_) {
       return value;
     }
@@ -585,51 +443,55 @@ class _EnrollmentCard extends StatelessWidget {
 }
 
 // ================================================================
-// AMOUNT ITEM
+// SUMMARY ROW — mirrors "Total Paid / Total Due" row style
 // ================================================================
 
-class _AmountItem extends StatelessWidget {
+class _SummaryRow extends StatelessWidget {
   final String label;
   final double value;
+  final Color valueColor;
+  final bool showDivider;
 
-  const _AmountItem({
+  const _SummaryRow({
     required this.label,
     required this.value,
+    required this.valueColor,
+    this.showDivider = true,
   });
 
   @override
   Widget build(BuildContext context) {
     return Column(
-      crossAxisAlignment:
-          CrossAxisAlignment.start,
       children: [
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 11,
-            color: Colors
-                .grey
-                .shade600,
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                label,
+                style: AppTextStyle.regularSmall.copyWith(
+                  color: Colors.grey.shade600,
+                ),
+              ),
+              Text(
+                '₹${NumberFormat('#,##0').format(value)}',
+                style: AppTextStyle.semiBold.copyWith(
+                  color: valueColor,
+                ),
+              ),
+            ],
           ),
         ),
-        const SizedBox(height: 4),
-        Text(
-          '₹${NumberFormat('#,##0.00').format(value)}',
-          style: const TextStyle(
-            fontSize: 13,
-            fontWeight:
-                FontWeight.w600,
-            color:
-                Color(0xFF1F2937),
-          ),
-        ),
+        if (showDivider)
+          Divider(height: 1, color: Colors.grey.shade200),
       ],
     );
   }
 }
 
 // ================================================================
-// STATUS BADGE
+// STATUS BADGE (pill)
 // ================================================================
 
 class _StatusBadge extends StatelessWidget {
@@ -646,51 +508,37 @@ class _StatusBadge extends StatelessWidget {
 
     switch (status.toLowerCase()) {
       case 'active':
-        background =
-            const Color(0xFFE8F5E9);
-        foreground =
-            const Color(0xFF2E7D32);
+        background = const Color(0xFFE8F5E9);
+        foreground = const Color(0xFF2E7D32);
         break;
 
       case 'closed':
-        background =
-            const Color(0xFFE3F2FD);
-        foreground =
-            const Color(0xFF1565C0);
+        background = const Color(0xFFE3F2FD);
+        foreground = const Color(0xFF1565C0);
         break;
 
       case 'cancelled':
-        background =
-            const Color(0xFFFFEBEE);
-        foreground =
-            const Color(0xFFC62828);
+        background = const Color(0xFFFFEBEE);
+        foreground = const Color(0xFFC62828);
         break;
 
       default:
-        background =
-            const Color(0xFFF3F4F6);
-        foreground =
-            const Color(0xFF6B7280);
+        background = const Color(0xFFF3F4F6);
+        foreground = const Color(0xFF6B7280);
     }
 
     return Container(
-      padding:
-          const EdgeInsets.symmetric(
+      padding: const EdgeInsets.symmetric(
         horizontal: 10,
         vertical: 6,
       ),
-      decoration:
-          BoxDecoration(
+      decoration: BoxDecoration(
         color: background,
-        borderRadius:
-            BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(20),
       ),
       child: Text(
         status,
-        style: TextStyle(
-          fontSize: 11,
-          fontWeight:
-              FontWeight.w600,
+        style: AppTextStyle.semiBoldSmall.copyWith(
           color: foreground,
         ),
       ),

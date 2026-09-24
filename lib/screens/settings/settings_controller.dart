@@ -20,24 +20,29 @@ class SettingsController extends GetxController {
       "icon": "person_add",
       "route": "/diwali-enrollments",
     },
-     {
+    {
       "title": "Emi Scheme",
-      "subtitle": "Manage Diwali enrollers",
+      "subtitle": "Manage EMI schemes",
       "icon": "person_add",
       "route": "/emi-schemes",
     },
-
-      {
-      "title": "Emi Entroll",
-      "subtitle": "Manage Diwali enrollers",
+    {
+      "title": "Emi Enroll",
+      "subtitle": "Manage EMI enrollments",
       "icon": "person_add",
       "route": "/emi-enrollments",
     },
     {
-      "title": "Emi Entroll List",
-      "subtitle": "Manage Diwali enrollers",
+      "title": "Emi Enroll List",
+      "subtitle": "View EMI enrollment list",
       "icon": "person_add",
       "route": "/emi-enrollments-list",
+    },
+    {
+      "title": "Emi Report",
+      "subtitle": "Report",
+      "icon": "person_add",
+      "route": "/emi-payment-report",
     },
   ];
 

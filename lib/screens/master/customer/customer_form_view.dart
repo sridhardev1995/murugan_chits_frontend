@@ -146,8 +146,9 @@ class _CustomerFormState extends State<_CustomerForm> {
               maxLength: 10,
               inputFormatters: [FilteringTextInputFormatter.digitsOnly],
               validator: (v) {
-                if (v == null || v.trim().isEmpty)
+                if (v == null || v.trim().isEmpty) {
                   return 'Phone number is required';
+                }
                 if (!_phoneRegex.hasMatch(v.trim())) {
                   return 'Enter a valid 10-digit phone number';
                 }

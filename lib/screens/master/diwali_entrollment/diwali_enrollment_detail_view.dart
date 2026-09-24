@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+import 'package:intl/intl.dart';
 
 import 'package:sri_murugan_chits/models/diwali_enrollment/diwali_enrollment_model.dart';
 import 'package:sri_murugan_chits/utils/global/app_text_style.dart';
@@ -331,21 +332,7 @@ class DiwaliEnrollmentDetailView extends GetView<DiwaliEnrollmentController> {
 
                 const SizedBox(height: 3),
 
-                Text(
-                  'Due ${week.dueDate}',
-                  style: AppTextStyle.regularSmall.copyWith(
-                    color: Colors.grey.shade500,
-                  ),
-                ),
-
-                if (week.paymentDate != null)
-                  Text(
-                    'Paid ${week.paymentDate}'
-                    '${week.paymentMode != null ? ' · ${week.paymentMode}' : ''}',
-                    style: AppTextStyle.regularSmall.copyWith(
-                      color: Colors.grey.shade500,
-                    ),
-                  ),
+                _dueStatusLine(week),
               ],
             ),
           ),
@@ -378,6 +365,121 @@ class DiwaliEnrollmentDetailView extends GetView<DiwaliEnrollmentController> {
           ],
         ],
       ),
+    );
+  }
+
+  // ============================================================
+  // DUE / PAID STATUS — single line, color-coded
+  // Green = paid on time, Red = paid late OR overdue & unpaid,
+  // Grey  = upcoming, not yet due
+  // ============================================================
+
+  Widget _dueStatusLine(DiwaliEnrollmentWeekModel week) {
+    DateTime? dueDate;
+    try {
+      dueDate = week.dueDate.isNotEmpty ? DateTime.parse(week.dueDate) : null;
+    } catch (_) {}
+
+    // Case 1: payment recorded — compare payment date vs due date
+    if (week.paymentDate != null && week.paymentDate!.isNotEmpty) {
+      DateTime? paidDate;
+      try {
+        paidDate = DateTime.parse(week.paymentDate!);
+      } catch (_) {}
+
+      final modeSuffix = week.paymentMode != null && week.paymentMode!.isNotEmpty
+          ? ' · ${week.paymentMode}'
+          : '';
+
+      if (dueDate != null && paidDate != null) {
+        final diff = DateTime(paidDate.year, paidDate.month, paidDate.day)
+            .difference(DateTime(dueDate.year, dueDate.month, dueDate.day))
+            .inDays;
+
+        if (diff <= 0) {
+          return _statusLine(
+            icon: Icons.check_circle_outline,
+            text: 'Due ${_formatDate(week.dueDate)} · Paid ${_formatDate(week.paymentDate)}$modeSuffix',
+            color: Colors.green.shade700,
+          );
+        }
+
+        return _statusLine(
+          icon: Icons.error_outline,
+          text:
+              'Due ${_formatDate(week.dueDate)} · Paid ${_formatDate(week.paymentDate)} ($diff day${diff > 1 ? 's' : ''} late)$modeSuffix',
+          color: Colors.red.shade600,
+        );
+      }
+
+      return _statusLine(
+        icon: Icons.check_circle_outline,
+        text: 'Paid ${_formatDate(week.paymentDate)}$modeSuffix',
+        color: Colors.green.shade700,
+      );
+    }
+
+    // Case 2: not paid yet — check if overdue
+    if (dueDate != null) {
+      final today = DateTime.now();
+      final diff = DateTime(today.year, today.month, today.day)
+          .difference(DateTime(dueDate.year, dueDate.month, dueDate.day))
+          .inDays;
+
+      if (diff > 0) {
+        return _statusLine(
+          icon: Icons.warning_amber_outlined,
+          text: 'Overdue by $diff day${diff > 1 ? 's' : ''} · Due ${_formatDate(week.dueDate)}',
+          color: Colors.red.shade600,
+        );
+      }
+
+      return _statusLine(
+        icon: Icons.event_outlined,
+        text: 'Due ${_formatDate(week.dueDate)}',
+        color: Colors.grey.shade500,
+      );
+    }
+
+    return _statusLine(
+      icon: Icons.event_outlined,
+      text: 'Due date not set',
+      color: Colors.grey.shade500,
+    );
+  }
+
+  // dd MMM yy → e.g. "20 Sep 26"
+  String _formatDate(String? value) {
+    if (value == null || value.isEmpty) {
+      return '-';
+    }
+    try {
+      return DateFormat('dd MMM yy').format(DateTime.parse(value));
+    } catch (_) {
+      return value;
+    }
+  }
+
+  Widget _statusLine({
+    required IconData icon,
+    required String text,
+    required Color color,
+  }) {
+    return Row(
+      children: [
+        Icon(icon, size: 13, color: color),
+        const SizedBox(width: 4),
+        Expanded(
+          child: Text(
+            text,
+            overflow: TextOverflow.ellipsis,
+            style: AppTextStyle.semiBoldSmall.copyWith(
+              color: color,
+              fontSize: 11.5,
+            ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -618,7 +720,7 @@ class DiwaliEnrollmentDetailView extends GetView<DiwaliEnrollmentController> {
                     const SizedBox(height: 12),
 
                     DropdownButtonFormField<String>(
-                      value: selectedMode,
+                      initialValue: selectedMode,
                       decoration: const InputDecoration(
                         labelText: 'Payment Mode',
                         border: OutlineInputBorder(),

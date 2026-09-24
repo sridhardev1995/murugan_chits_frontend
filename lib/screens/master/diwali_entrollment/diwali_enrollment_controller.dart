@@ -258,6 +258,9 @@ class DiwaliEnrollmentController extends GetxController {
       } else {
         enrollments.addAll(fetched);
       }
+      enrollments.sort(
+        (a, b) => b.currentChits.compareTo(a.currentChits),
+      );
 
       _log('🟢 [fetchEnrollments] list total=${enrollments.length} '
           'totalPages=${totalPages.value}');

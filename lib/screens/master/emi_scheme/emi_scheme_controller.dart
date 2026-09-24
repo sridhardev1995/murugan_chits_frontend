@@ -238,7 +238,7 @@ class EmiSchemeController extends GetxController {
 
     try {
       await repository.changeStatus(
-        id: scheme.id!,
+        id: scheme.id,
         status: newStatus,
       );
 
@@ -274,7 +274,7 @@ class EmiSchemeController extends GetxController {
 
     try {
       await repository.deleteScheme(
-        scheme.id!,
+        scheme.id,
       );
 
       schemes.removeWhere(
@@ -317,11 +317,11 @@ class EmiSchemeController extends GetxController {
         scheme.description ?? '';
 
     weeksController.text =
-        scheme.defaultWeeks?.toString() ?? '';
+        scheme.defaultWeeks.toString() ?? '';
 
     commissionValueController.text =
         scheme.defaultCommissionValue
-                ?.toString() ??
+                .toString() ??
             '';
 
     selectedCommissionType.value =

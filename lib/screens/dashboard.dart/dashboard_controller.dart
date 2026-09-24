@@ -13,9 +13,9 @@ class DashboardController extends GetxController {
       label: 'Dashboard',
     ),
     BottomNavigationBarItem(
-      icon: Icon(Icons.people_outline),
-      activeIcon: Icon(Icons.people),
-      label: 'Customers',
+      icon: Icon(Icons.shutter_speed_outlined),
+      activeIcon: Icon(Icons.shutter_speed_outlined),
+      label: 'EMI',
     ),
     BottomNavigationBarItem(
       icon: Icon(Icons.account_balance_wallet_outlined),

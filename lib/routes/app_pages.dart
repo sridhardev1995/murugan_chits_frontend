@@ -15,7 +15,9 @@ import 'package:sri_murugan_chits/screens/master/emi_entroll/emi_enrollment_list
 import 'package:sri_murugan_chits/screens/master/emi_entroll/emi_enrollment_screen.dart';
 import 'package:sri_murugan_chits/screens/master/emi_scheme/emi_scheme_binding.dart';
 import 'package:sri_murugan_chits/screens/master/emi_scheme/emi_scheme_screen.dart';
-import 'package:sri_murugan_chits/screens/settings/settings_binding.dart';
+import 'package:sri_murugan_chits/screens/report/emi_payment_report_binding.dart';
+import 'package:sri_murugan_chits/screens/report/emi_payment_report_screen.dart';
+import 'package:sri_murugan_chits/screens/settings/settings_binding.dart' hide EmiPaymentReportBinding;
 import 'package:sri_murugan_chits/screens/settings/settings_screen.dart';
 import 'package:sri_murugan_chits/screens/splash/splash_screen.dart';
 
@@ -61,6 +63,11 @@ class AppRoutes {
     GetPage(
   name: '/emi-enrollments-list',
   page: () => const EmiEnrollmentListScreen(),
+),
+GetPage(
+  name: '/emi-payment-report',
+  page: () => const EmiPaymentReportScreen(),
+  binding: EmiPaymentReportBinding(),   // 👈 add this
 ),
   ];
 }

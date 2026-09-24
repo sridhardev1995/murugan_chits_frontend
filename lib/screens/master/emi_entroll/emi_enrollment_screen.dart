@@ -101,7 +101,7 @@ class AddEnrollmentScreen extends StatelessWidget {
             const SizedBox(height: 12),
             Obx(() {
               return DropdownButtonFormField<String>(
-                value: controller.selectedCommissionType.value,
+                initialValue: controller.selectedCommissionType.value,
                 decoration: const InputDecoration(labelText: 'Commission Type'),
                 items: const [
                   DropdownMenuItem(value: 'percent', child: Text('Percentage')),

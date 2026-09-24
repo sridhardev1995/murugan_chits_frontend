@@ -10,16 +10,16 @@ class UserModel {
     success = json['success'];
     message = json['message'];
     token = json['token'];
-    admin = json['admin'] != null ? new Admin.fromJson(json['admin']) : null;
+    admin = json['admin'] != null ? Admin.fromJson(json['admin']) : null;
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['success'] = this.success;
-    data['message'] = this.message;
-    data['token'] = this.token;
-    if (this.admin != null) {
-      data['admin'] = this.admin!.toJson();
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['success'] = success;
+    data['message'] = message;
+    data['token'] = token;
+    if (admin != null) {
+      data['admin'] = admin!.toJson();
     }
     return data;
   }
@@ -37,9 +37,9 @@ class Admin {
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['id'] = this.id;
-    data['username'] = this.username;
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['id'] = id;
+    data['username'] = username;
     return data;
   }
 }

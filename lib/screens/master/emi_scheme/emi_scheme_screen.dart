@@ -514,7 +514,7 @@ class EmiSchemeScreen
               Obx(() {
                 return DropdownButtonFormField<
                     String>(
-                  value: controller
+                  initialValue: controller
                       .selectedCommissionType
                       .value,
                   decoration:

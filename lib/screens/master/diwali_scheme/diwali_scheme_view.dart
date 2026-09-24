@@ -225,7 +225,7 @@ class DiwaliSchemeView extends GetView<DiwaliSchemeController> {
                     child: Switch(
                       value: isActive,
                       onChanged: (_) => controller.toggleStatus(scheme),
-                      activeColor: Colors.green.shade600,
+                      activeThumbColor: Colors.green.shade600,
                       inactiveThumbColor: Colors.grey.shade400,
                       inactiveTrackColor: Colors.grey.shade300,
                     ),

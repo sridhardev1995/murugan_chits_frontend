@@ -166,8 +166,9 @@ class _SchemeFormState extends State<_SchemeForm> {
               keyboardType: TextInputType.number,
               inputFormatters: [FilteringTextInputFormatter.digitsOnly],
               validator: (v) {
-                if (v == null || v.trim().isEmpty)
+                if (v == null || v.trim().isEmpty) {
                   return null; // defaults to 52
+                }
                 final n = int.tryParse(v.trim());
                 if (n == null || n <= 0) return 'Enter a valid number of weeks';
                 return null;

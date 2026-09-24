@@ -433,15 +433,14 @@ class DiwaliEnrollmentView
                       height: 4,
                     ),
 
-                    Text(
-                      enrollment
-                          .schemeName,
+                                        Text(
+                      enrollment.schemeName,
                       style: AppTextStyle
                           .regularSmall
                           .copyWith(
                         color:
-                            Colors.grey
-                                .shade600,
+                            Colors.grey.shade600,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
 
@@ -456,8 +455,8 @@ class DiwaliEnrollmentView
                           .regularSmall
                           .copyWith(
                         color:
-                            Colors.grey
-                                .shade500,
+                            Colors.grey.shade500,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
                   ],

@@ -272,7 +272,7 @@ class CustomerView extends GetView<CustomerController> {
                           child: Switch(
                             value: isActive,
                             onChanged: (_) => controller.toggleStatus(customer),
-                            activeColor: Colors.green.shade600,
+                            activeThumbColor: Colors.green.shade600,
                             inactiveThumbColor: Colors.grey.shade400,
                             inactiveTrackColor: Colors.grey.shade300,
                           ),
