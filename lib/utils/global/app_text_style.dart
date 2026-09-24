@@ -29,6 +29,8 @@ class AppTextStyle {
     color: AppColors.black,
   );
 
+
+
   // SemiBold - 600
   static const TextStyle semiBold = TextStyle(
     fontFamily: fontFamily,
@@ -36,6 +38,8 @@ class AppTextStyle {
     fontSize: 14,
     color: AppColors.black,
   );
+
+  
 
   static const TextStyle semiBoldSmall = TextStyle(
     fontFamily: fontFamily,

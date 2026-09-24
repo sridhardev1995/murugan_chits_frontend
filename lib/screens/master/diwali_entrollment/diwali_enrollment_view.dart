@@ -426,7 +426,7 @@ class DiwaliEnrollmentView
                       enrollment
                           .customerName,
                       style: AppTextStyle
-                          .semiBoldLarge,
+                          .semiBoldLarge.copyWith(fontSize: 17),
                     ),
 
                     const SizedBox(
@@ -436,11 +436,12 @@ class DiwaliEnrollmentView
                                         Text(
                       enrollment.schemeName,
                       style: AppTextStyle
-                          .regularSmall
+                          .regular
                           .copyWith(
                         color:
                             Colors.grey.shade600,
                         fontWeight: FontWeight.bold,
+                        fontSize: 13
                       ),
                     ),
 
@@ -452,7 +453,7 @@ class DiwaliEnrollmentView
                       '${enrollment.currentChits} chits · '
                       '₹${enrollment.chitValue.toStringAsFixed(0)}/chit',
                       style: AppTextStyle
-                          .regularSmall
+                          .regular
                           .copyWith(
                         color:
                             Colors.grey.shade500,

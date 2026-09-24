@@ -1,93 +1,145 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:sri_murugan_chits/screens/report/emi_payment_report_controller.dart';
+
+// import 'package:sri_murugan_chits/screens/report/controller/emi_payment_report_controller.dart';
 import 'package:sri_murugan_chits/utils/colors/app_colors.dart';
 
-
-
-class EmiPaymentReportScreen extends GetView<EmiPaymentReportController> {
+class EmiPaymentReportScreen
+    extends GetView<EmiPaymentReportController> {
   const EmiPaymentReportScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF6F7FB),
+      backgroundColor: AppColors.scaffold,
       appBar: AppBar(
-        elevation: 0,
         backgroundColor: AppColors.primary,
-        foregroundColor: Colors.white,
+        elevation: 0,
+        centerTitle: true,
         title: const Text(
           'EMI Payment Report',
-          style: TextStyle(fontSize: 19, fontWeight: FontWeight.w600),
+          style: TextStyle(
+            color: AppColors.black,
+            fontSize: 18,
+            fontWeight: FontWeight.w700,
+          ),
         ),
+        iconTheme: const IconThemeData(
+          color: AppColors.black,
+        ),
+        actions: [
+          IconButton(
+            onPressed: () => controller.loadReport(),
+            icon: const Icon(
+              Icons.refresh,
+              color: AppColors.black,
+            ),
+          ),
+        ],
       ),
       body: Obx(
-        () => RefreshIndicator(
-          onRefresh: () => controller.loadReport(refresh: true),
-          child: _buildBody(context),
-        ),
+        () {
+          if (controller.loading.value &&
+              controller.payments.isEmpty) {
+            return const Center(
+              child: CircularProgressIndicator(
+                color: AppColors.primary,
+              ),
+            );
+          }
+
+          return RefreshIndicator(
+            color: AppColors.primary,
+            onRefresh: () => controller.loadReport(),
+            child: ListView(
+              padding: const EdgeInsets.all(16),
+              children: [
+                _buildFilters(context),
+                const SizedBox(height: 16),
+                _buildSummary(),
+                const SizedBox(height: 18),
+                _buildReportHeader(),
+                const SizedBox(height: 10),
+                _buildPaymentList(),
+                const SizedBox(height: 16),
+                _buildPagination(),
+                const SizedBox(height: 30),
+              ],
+            ),
+          );
+        },
       ),
     );
   }
 
-  Widget _buildBody(BuildContext context) {
-    if (controller.loading.value && controller.payments.isEmpty) {
-      return const Center(
-        child: CircularProgressIndicator(color: Color(0xFF8B1C1C)),
-      );
-    }
-
-    return ListView(
-      physics: const AlwaysScrollableScrollPhysics(),
-      padding: const EdgeInsets.all(14),
-      children: [
-        _buildFilterCard(context),
-        const SizedBox(height: 14),
-        _buildSummarySection(),
-        const SizedBox(height: 14),
-        _buildReportHeader(),
-        const SizedBox(height: 10),
-        _buildPaymentList(),
-        const SizedBox(height: 14),
-        _buildPagination(),
-      ],
-    );
-  }
-
   // ============================================================
-  // FILTER CARD
+  // FILTERS
   // ============================================================
 
-  Widget _buildFilterCard(BuildContext context) {
+  Widget _buildFilters(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: Colors.grey.shade300,
+        ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(.05),
+            color: Colors.black.withOpacity(0.04),
             blurRadius: 8,
-            offset: const Offset(0, 2),
+            offset: const Offset(0, 3),
           ),
         ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Row(
-            children: [
-              Icon(
-                Icons.filter_alt_outlined,
-                color: Color(0xFF8B1C1C),
-                size: 21,
-              ),
-              SizedBox(width: 8),
-              Text(
-                'Report Filters',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
-              ),
-            ],
+          const Text(
+            'Report Filters',
+            style: TextStyle(
+              color: AppColors.black,
+              fontSize: 17,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+
+          const SizedBox(height: 16),
+
+          // CUSTOMER
+          const Text(
+            'Customer',
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: AppColors.black,
+            ),
+          ),
+
+          const SizedBox(height: 7),
+
+          Obx(
+            () => _buildCustomerDropdown(),
+          ),
+
+          const SizedBox(height: 14),
+
+          // SCHEME
+          const Text(
+            'Scheme',
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: AppColors.black,
+            ),
+          ),
+
+          const SizedBox(height: 7),
+
+          Obx(
+            () => _buildSchemeDropdown(),
           ),
 
           const SizedBox(height: 14),
@@ -96,18 +148,16 @@ class EmiPaymentReportScreen extends GetView<EmiPaymentReportController> {
           Row(
             children: [
               Expanded(
-                child: _dateField(
-                  context: context,
-                  label: 'From Date',
+                child: _buildDateField(
+                  title: 'From Date',
                   value: controller.fromDate.value,
                   onTap: () => _selectFromDate(context),
                 ),
               ),
-              const SizedBox(width: 10),
+              const SizedBox(width: 12),
               Expanded(
-                child: _dateField(
-                  context: context,
-                  label: 'To Date',
+                child: _buildDateField(
+                  title: 'To Date',
                   value: controller.toDate.value,
                   onTap: () => _selectToDate(context),
                 ),
@@ -115,65 +165,53 @@ class EmiPaymentReportScreen extends GetView<EmiPaymentReportController> {
             ],
           ),
 
-          const SizedBox(height: 12),
-
-          // PAYMENT MODE
-          _dropdownField(
-            label: 'Payment Mode',
-            value: controller.paymentMode.value.isEmpty
-                ? 'All'
-                : controller.paymentMode.value,
-            items: const ['All', 'Cash', 'UPI'],
-            icon: Icons.payments_outlined,
-            onChanged: (value) {
-              if (value == null) return;
-
-              controller.setPaymentMode(value == 'All' ? '' : value);
-            },
-          ),
-
-          const SizedBox(height: 12),
-
-          // STATUS
-          _dropdownField(
-            label: 'Status',
-            value: controller.status.value.isEmpty
-                ? 'All'
-                : controller.status.value,
-            items: const ['All', 'Active', 'Reversed'],
-            icon: Icons.info_outline,
-            onChanged: (value) {
-              if (value == null) return;
-
-              controller.setStatus(value == 'All' ? '' : value);
-            },
-          ),
-
           const SizedBox(height: 14),
+
+          // PAYMENT MODE + STATUS
+          Row(
+            children: [
+              Expanded(
+                child: Obx(
+                  () => _buildPaymentModeDropdown(),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Obx(
+                  () => _buildStatusDropdown(),
+                ),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 18),
 
           // BUTTONS
           Row(
             children: [
               Expanded(
                 child: SizedBox(
-                  height: 46,
+                  height: 48,
                   child: ElevatedButton.icon(
                     onPressed: controller.loading.value
                         ? null
-                        : () {
-                            controller.applyFilters();
-                          },
-                    icon: const Icon(Icons.search, size: 20),
-                    label: const Text(
-                      'Search',
-                      style: TextStyle(fontWeight: FontWeight.w600),
-                    ),
+                        : () => controller.loadReport(),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF8B1C1C),
-                      foregroundColor: Colors.white,
+                      backgroundColor: AppColors.primary,
+                      foregroundColor: AppColors.black,
                       elevation: 0,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    icon: const Icon(
+                      Icons.search,
+                      size: 20,
+                    ),
+                    label: const Text(
+                      'Search',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
                   ),
@@ -181,27 +219,179 @@ class EmiPaymentReportScreen extends GetView<EmiPaymentReportController> {
               ),
               const SizedBox(width: 10),
               SizedBox(
-                height: 46,
+                height: 48,
                 child: OutlinedButton(
-                  onPressed: controller.loading.value
-                      ? null
-                      : () {
-                          controller.resetFilters();
-                        },
+                  onPressed: () => controller.resetFilters(),
                   style: OutlinedButton.styleFrom(
-                    foregroundColor: const Color(0xFF8B1C1C),
-                    side: const BorderSide(color: Color(0xFF8B1C1C)),
+                    foregroundColor: AppColors.black,
+                    side: const BorderSide(
+                      color: AppColors.primary,
+                    ),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10),
                     ),
                   ),
                   child: const Text(
                     'Reset',
-                    style: TextStyle(fontWeight: FontWeight.w600),
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ),
               ),
             ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ============================================================
+  // CUSTOMER DROPDOWN
+  // ============================================================
+
+  Widget _buildCustomerDropdown() {
+    if (controller.customersLoading.value) {
+      return _loadingDropdown('Loading customers...');
+    }
+
+    final selectedId =
+        controller.selectedCustomerId.value;
+
+    final validValue = controller.customers.any(
+      (customer) =>
+          customer.id.toString() == selectedId,
+    )
+        ? selectedId
+        : '';
+
+    return DropdownButtonFormField<String>(
+      value: validValue,
+      isExpanded: true,
+      decoration: _inputDecoration(
+        Icons.person_outline,
+        'Select Customer',
+      ),
+      items: [
+        const DropdownMenuItem<String>(
+          value: '',
+          child: Text(
+            'All Customers',
+            style: TextStyle(
+              color: AppColors.black,
+            ),
+          ),
+        ),
+        ...controller.customers.map(
+          (customer) {
+            return DropdownMenuItem<String>(
+              value: customer.id.toString(),
+              child: Text(
+                '${customer.name} - ${customer.phone}',
+                overflow: TextOverflow.ellipsis,
+              ),
+            );
+          },
+        ),
+      ],
+      onChanged: (value) {
+        controller.setCustomer(
+          value == null || value.isEmpty
+              ? null
+              : value,
+        );
+      },
+    );
+  }
+
+  // ============================================================
+  // SCHEME DROPDOWN
+  // ============================================================
+
+  Widget _buildSchemeDropdown() {
+    if (controller.schemesLoading.value) {
+      return _loadingDropdown('Loading schemes...');
+    }
+
+    final selectedId =
+        controller.selectedSchemeId.value;
+
+    final validValue = controller.schemes.any(
+      (scheme) =>
+          scheme.id.toString() == selectedId,
+    )
+        ? selectedId
+        : '';
+
+    return DropdownButtonFormField<String>(
+      value: validValue,
+      isExpanded: true,
+      decoration: _inputDecoration(
+        Icons.account_balance_wallet_outlined,
+        'Select Scheme',
+      ),
+      items: [
+        const DropdownMenuItem<String>(
+          value: '',
+          child: Text(
+            'All Schemes',
+            style: TextStyle(
+              color: AppColors.black,
+            ),
+          ),
+        ),
+        ...controller.schemes.map(
+          (scheme) {
+            return DropdownMenuItem<String>(
+              value: scheme.id.toString(),
+              child: Text(
+                scheme.name,
+                overflow: TextOverflow.ellipsis,
+              ),
+            );
+          },
+        ),
+      ],
+      onChanged: (value) {
+        controller.setScheme(
+          value == null || value.isEmpty
+              ? null
+              : value,
+        );
+      },
+    );
+  }
+
+  Widget _loadingDropdown(String text) {
+    return Container(
+      height: 56,
+      padding: const EdgeInsets.symmetric(
+        horizontal: 14,
+      ),
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        border: Border.all(
+          color: Colors.grey.shade300,
+        ),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Row(
+        children: [
+          const SizedBox(
+            width: 18,
+            height: 18,
+            child: CircularProgressIndicator(
+              strokeWidth: 2,
+              color: AppColors.primary,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Text(
+            text,
+            style: TextStyle(
+              color: Colors.grey.shade600,
+              fontSize: 13,
+            ),
           ),
         ],
       ),
@@ -212,87 +402,100 @@ class EmiPaymentReportScreen extends GetView<EmiPaymentReportController> {
   // DATE FIELD
   // ============================================================
 
-  Widget _dateField({
-    required BuildContext context,
-    required String label,
+  Widget _buildDateField({
+    required String title,
     required String value,
     required VoidCallback onTap,
   }) {
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(10),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
-        decoration: BoxDecoration(
-          border: Border.all(color: Colors.grey.shade300),
-          borderRadius: BorderRadius.circular(10),
+      child: InputDecorator(
+        decoration: _inputDecoration(
+          Icons.calendar_month_outlined,
+          title,
         ),
-        child: Row(
-          children: [
-            const Icon(
-              Icons.calendar_month_outlined,
-              size: 20,
-              color: Color(0xFF8B1C1C),
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    label,
-                    style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
-                  ),
-                  const SizedBox(height: 3),
-                  Text(
-                    value.isEmpty ? 'Select Date' : value,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: value.isEmpty ? Colors.grey : Colors.black87,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
+        child: Text(
+          value.isEmpty
+              ? 'Select date'
+              : value,
+          style: TextStyle(
+            fontSize: 13,
+            color: value.isEmpty
+                ? Colors.grey.shade600
+                : AppColors.black,
+            fontWeight: FontWeight.w500,
+          ),
         ),
       ),
     );
   }
 
   // ============================================================
-  // DROPDOWN
+  // PAYMENT MODE
   // ============================================================
 
-  Widget _dropdownField({
-    required String label,
-    required String value,
-    required List<String> items,
-    required IconData icon,
-    required ValueChanged<String?> onChanged,
-  }) {
+  Widget _buildPaymentModeDropdown() {
     return DropdownButtonFormField<String>(
-      initialValue: value,
+      value: controller.paymentMode.value,
       isExpanded: true,
-      decoration: InputDecoration(
-        labelText: label,
-        prefixIcon: Icon(icon, color: const Color(0xFF8B1C1C)),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
-          borderSide: BorderSide(color: Colors.grey.shade300),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
-          borderSide: BorderSide(color: Colors.grey.shade300),
-        ),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+      decoration: _inputDecoration(
+        Icons.payments_outlined,
+        'Payment Mode',
       ),
-      items: items.map((item) {
-        return DropdownMenuItem<String>(value: item, child: Text(item));
-      }).toList(),
-      onChanged: onChanged,
+      items: const [
+        DropdownMenuItem(
+          value: '',
+          child: Text('All Modes'),
+        ),
+        DropdownMenuItem(
+          value: 'Cash',
+          child: Text('Cash'),
+        ),
+        DropdownMenuItem(
+          value: 'UPI',
+          child: Text('UPI'),
+        ),
+      ],
+      onChanged: (value) {
+        controller.setPaymentMode(
+          value ?? '',
+        );
+      },
+    );
+  }
+
+  // ============================================================
+  // STATUS
+  // ============================================================
+
+  Widget _buildStatusDropdown() {
+    return DropdownButtonFormField<String>(
+      value: controller.status.value,
+      isExpanded: true,
+      decoration: _inputDecoration(
+        Icons.filter_alt_outlined,
+        'Status',
+      ),
+      items: const [
+        DropdownMenuItem(
+          value: '',
+          child: Text('All Status'),
+        ),
+        DropdownMenuItem(
+          value: 'Active',
+          child: Text('Active'),
+        ),
+        DropdownMenuItem(
+          value: 'Reversed',
+          child: Text('Reversed'),
+        ),
+      ],
+      onChanged: (value) {
+        controller.setStatus(
+          value ?? '',
+        );
+      },
     );
   }
 
@@ -300,88 +503,78 @@ class EmiPaymentReportScreen extends GetView<EmiPaymentReportController> {
   // SUMMARY
   // ============================================================
 
-  Widget _buildSummarySection() {
+  Widget _buildSummary() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text(
           'Payment Summary',
-          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+          style: TextStyle(
+            color: AppColors.black,
+            fontSize: 17,
+            fontWeight: FontWeight.w700,
+          ),
         ),
+
         const SizedBox(height: 10),
 
-        GridView.count(
-          crossAxisCount: 2,
-          crossAxisSpacing: 10,
-          mainAxisSpacing: 10,
-          childAspectRatio: 1.75,
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
+        Row(
           children: [
-            _summaryCard(
-              title: 'Total Collection',
-              value: _money(controller.totalCollection.value),
-              icon: Icons.account_balance_wallet_outlined,
+            Expanded(
+              child: _summaryCard(
+                title: 'Total Collection',
+                value: _money(
+                  controller.totalCollection.value,
+                ),
+                icon: Icons.account_balance_wallet,
+              ),
             ),
-            _summaryCard(
-              title: 'Cash Total',
-              value: _money(controller.cashTotal.value),
-              icon: Icons.money_outlined,
-            ),
-            _summaryCard(
-              title: 'UPI Total',
-              value: _money(controller.upiTotal.value),
-              icon: Icons.phone_android_outlined,
-            ),
-            _summaryCard(
-              title: 'Reversed',
-              value: _money(controller.reversedTotal.value),
-              icon: Icons.undo_outlined,
+            const SizedBox(width: 10),
+            Expanded(
+              child: _summaryCard(
+                title: 'Cash',
+                value: _money(
+                  controller.cashTotal.value,
+                ),
+                icon: Icons.money,
+              ),
             ),
           ],
         ),
 
         const SizedBox(height: 10),
 
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Colors.grey.shade200),
-          ),
-          child: Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(9),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF8B1C1C).withOpacity(.08),
-                  borderRadius: BorderRadius.circular(9),
+        Row(
+          children: [
+            Expanded(
+              child: _summaryCard(
+                title: 'UPI',
+                value: _money(
+                  controller.upiTotal.value,
                 ),
-                child: const Icon(
-                  Icons.receipt_long_outlined,
-                  size: 20,
-                  color: Color(0xFF8B1C1C),
-                ),
+                icon: Icons.phone_android,
               ),
-              const SizedBox(width: 12),
-              const Expanded(
-                child: Text(
-                  'Transactions',
-                  style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: _summaryCard(
+                title: 'Reversed',
+                value: _money(
+                  controller.reversedTotal.value,
                 ),
+                icon: Icons.undo,
               ),
-              Text(
-                '${controller.transactionCount.value}',
-                style: const TextStyle(
-                  fontSize: 17,
-                  fontWeight: FontWeight.w800,
-                  color: Color(0xFF8B1C1C),
-                ),
-              ),
-            ],
-          ),
+            ),
+          ],
+        ),
+
+        const SizedBox(height: 10),
+
+        _summaryCard(
+          title: 'Transactions',
+          value: controller.transactionCount.value
+              .toString(),
+          icon: Icons.receipt_long,
         ),
       ],
     );
@@ -393,33 +586,45 @@ class EmiPaymentReportScreen extends GetView<EmiPaymentReportController> {
     required IconData icon,
   }) {
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.shade200),
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: Colors.grey.shade300,
+        ),
       ),
       child: Row(
         children: [
           Container(
-            padding: const EdgeInsets.all(9),
+            height: 42,
+            width: 42,
             decoration: BoxDecoration(
-              color: const Color(0xFF8B1C1C).withOpacity(.08),
-              borderRadius: BorderRadius.circular(9),
+              color: AppColors.primary.withOpacity(0.15),
+              borderRadius: BorderRadius.circular(10),
             ),
-            child: Icon(icon, color: const Color(0xFF8B1C1C), size: 20),
+            child: Icon(
+              icon,
+              color: AppColors.black,
+              size: 21,
+            ),
           ),
-          const SizedBox(width: 9),
+
+          const SizedBox(width: 10),
+
           Expanded(
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment:
+                  CrossAxisAlignment.start,
               children: [
                 Text(
                   title,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: Colors.grey.shade600,
+                  ),
                 ),
                 const SizedBox(height: 4),
                 Text(
@@ -428,7 +633,8 @@ class EmiPaymentReportScreen extends GetView<EmiPaymentReportController> {
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
                     fontSize: 15,
-                    fontWeight: FontWeight.w800,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.black,
                   ),
                 ),
               ],
@@ -449,18 +655,21 @@ class EmiPaymentReportScreen extends GetView<EmiPaymentReportController> {
         const Expanded(
           child: Text(
             'Payment Transactions',
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
-          ),
-        ),
-        if (controller.loadingMore.value)
-          const SizedBox(
-            height: 18,
-            width: 18,
-            child: CircularProgressIndicator(
-              strokeWidth: 2,
-              color: Color(0xFF8B1C1C),
+            style: TextStyle(
+              fontSize: 17,
+              fontWeight: FontWeight.w700,
+              color: AppColors.black,
             ),
           ),
+        ),
+        Text(
+          '${controller.totalRecords.value} Records',
+          style: TextStyle(
+            fontSize: 12,
+            color: Colors.grey.shade600,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
       ],
     );
   }
@@ -471,112 +680,176 @@ class EmiPaymentReportScreen extends GetView<EmiPaymentReportController> {
 
   Widget _buildPaymentList() {
     if (controller.payments.isEmpty) {
-      return Container(
-        padding: const EdgeInsets.symmetric(vertical: 50, horizontal: 20),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(14),
-        ),
-        child: Column(
-          children: [
-            Icon(
-              Icons.receipt_long_outlined,
-              size: 50,
-              color: Colors.grey.shade400,
-            ),
-            const SizedBox(height: 12),
-            Text(
-              'No payment transactions found',
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.grey.shade600,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ],
-        ),
-      );
+      return _buildEmptyState();
     }
 
     return Column(
-      children: controller.payments.map((payment) {
-        return _paymentCard(payment);
-      }).toList(),
+      children: controller.payments.map(
+        (payment) {
+          return Padding(
+            padding: const EdgeInsets.only(
+              bottom: 12,
+            ),
+            child: _buildPaymentCard(payment),
+          );
+        },
+      ).toList(),
     );
   }
 
-  Widget _paymentCard(Map<String, dynamic> payment) {
-    final String customerName = _stringValue(payment['customer_name']);
+  // ============================================================
+  // PAYMENT CARD
+  // ============================================================
 
-    final String schemeName = _stringValue(payment['scheme_name']);
+  Widget _buildPaymentCard(
+    Map<String, dynamic> payment,
+  ) {
+    final customerName = _stringValue(
+      payment['customer_name'],
+      'Unknown Customer',
+    );
 
-    final int weekNo = _intValue(payment['week_no']);
+    final customerPhone = _stringValue(
+      payment['customer_phone'],
+      '',
+    );
 
-    final double amount = _doubleValue(payment['amount']);
+    final schemeName = _stringValue(
+      payment['scheme_name'],
+      'Unknown Scheme',
+    );
 
-    final String mode = _stringValue(payment['payment_mode']);
+    final paymentMode = _stringValue(
+      payment['payment_mode'],
+      '-',
+    );
 
-    final String status = _stringValue(payment['status']);
+    final status = _stringValue(
+      payment['status'],
+      'Active',
+    );
 
-    final String paymentDate = _stringValue(payment['payment_date']);
+    final amount = _doubleValue(
+      payment['amount'],
+    );
 
-    final bool isReversed = status.toLowerCase() == 'reversed';
+    final dueDate = _stringValue(
+      payment['due_date'],
+      '-',
+    );
+
+    final paymentDate = _stringValue(
+      payment['payment_date'],
+      '-',
+    );
+
+    final weekNo =
+        payment['week_no']?.toString() ?? '-';
+
+    final installmentAmount =
+        _doubleValue(
+      payment['installment_amount'],
+    );
+
+    final reversedBy = _stringValue(
+      payment['reversed_by_username'],
+      '',
+    );
+
+    final reversalReason = _stringValue(
+      payment['reversal_reason'],
+      '',
+    );
+
+    final reversed =
+        status.toLowerCase() == 'reversed';
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(15),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: isReversed ? Colors.red.shade100 : Colors.grey.shade200,
+          color: reversed
+              ? Colors.red.shade200
+              : Colors.grey.shade300,
         ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.03),
+            blurRadius: 7,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment:
+            CrossAxisAlignment.start,
         children: [
           // TOP
           Row(
+            crossAxisAlignment:
+                CrossAxisAlignment.start,
             children: [
               Container(
-                height: 42,
-                width: 42,
+                height: 45,
+                width: 45,
                 decoration: BoxDecoration(
-                  color: const Color(0xFF8B1C1C).withOpacity(.08),
-                  borderRadius: BorderRadius.circular(10),
+                  color: AppColors.primary
+                      .withOpacity(0.15),
+                  borderRadius:
+                      BorderRadius.circular(12),
                 ),
-                child: const Icon(
-                  Icons.person_outline,
-                  color: Color(0xFF8B1C1C),
+                child: Icon(
+                  paymentMode == 'UPI'
+                      ? Icons.phone_android
+                      : Icons.money,
+                  color: AppColors.black,
                 ),
               ),
-              const SizedBox(width: 11),
+
+              const SizedBox(width: 12),
 
               Expanded(
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  crossAxisAlignment:
+                      CrossAxisAlignment.start,
                   children: [
                     Text(
-                      customerName.isEmpty ? 'Unknown Customer' : customerName,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+                      customerName,
                       style: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w700,
+                        fontSize: 15,
+                        fontWeight:
+                            FontWeight.w700,
+                        color: AppColors.black,
                       ),
                     ),
-                    if (schemeName.isNotEmpty) ...[
-                      const SizedBox(height: 3),
-                      Text(
-                        schemeName,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.grey.shade600,
+
+                    if (customerPhone.isNotEmpty)
+                      Padding(
+                        padding:
+                            const EdgeInsets.only(
+                          top: 2,
+                        ),
+                        child: Text(
+                          customerPhone,
+                          style: TextStyle(
+                            fontSize: 12,
+                            color:
+                                Colors.grey.shade600,
+                          ),
                         ),
                       ),
-                    ],
+
+                    const SizedBox(height: 4),
+
+                    Text(
+                      schemeName,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey.shade600,
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -585,83 +858,249 @@ class EmiPaymentReportScreen extends GetView<EmiPaymentReportController> {
             ],
           ),
 
+          const SizedBox(height: 15),
+
+          // AMOUNT
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: AppColors.scaffold,
+              borderRadius:
+                  BorderRadius.circular(10),
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: _detailItem(
+                    'Paid Amount',
+                    _money(amount),
+                    isAmount: true,
+                  ),
+                ),
+                Container(
+                  width: 1,
+                  height: 35,
+                  color: Colors.grey.shade300,
+                ),
+                Expanded(
+                  child: _detailItem(
+                    'Payment Mode',
+                    paymentMode,
+                  ),
+                ),
+              ],
+            ),
+          ),
+
           const SizedBox(height: 14),
 
-          Divider(height: 1, color: Colors.grey.shade200),
-
-          const SizedBox(height: 12),
-
-          // DETAILS
+          // WEEK + INSTALLMENT
           Row(
             children: [
               Expanded(
-                child: _detailItem(
-                  icon: Icons.calendar_view_week_outlined,
-                  label: 'Week',
-                  value: 'Week $weekNo',
+                child: _infoRow(
+                  Icons.calendar_today_outlined,
+                  'Week',
+                  'Week $weekNo',
                 ),
               ),
               Expanded(
-                child: _detailItem(
-                  icon: Icons.payments_outlined,
-                  label: 'Mode',
-                  value: mode.isEmpty ? '-' : mode,
+                child: _infoRow(
+                  Icons.payments_outlined,
+                  'Installment',
+                  _money(installmentAmount),
                 ),
               ),
             ],
           ),
 
-          const SizedBox(height: 12),
+          const SizedBox(height: 10),
 
-          Row(
-            children: [
-              Expanded(
-                child: _detailItem(
-                  icon: Icons.event_outlined,
-                  label: 'Payment Date',
-                  value: _displayDate(paymentDate),
-                ),
-              ),
-              Expanded(
-                child: _detailItem(
-                  icon: Icons.currency_rupee,
-                  label: 'Amount',
-                  value: _money(amount),
-                  valueBold: true,
-                ),
-              ),
-            ],
+          // DUE DATE
+          _infoRow(
+            Icons.event_outlined,
+            'Due Date',
+            _formatDate(dueDate),
           ),
 
-          if (isReversed) ...[
+          const SizedBox(height: 8),
+
+          // PAID DATE
+          _infoRow(
+            Icons.check_circle_outline,
+            'Paid Date',
+            _formatDate(paymentDate),
+          ),
+
+          // TIMING
+          if (!reversed) ...[
+            const SizedBox(height: 10),
+            _buildPaymentTiming(
+              dueDate: dueDate,
+              paymentDate: paymentDate,
+            ),
+          ],
+
+          // REVERSED
+          if (reversed) ...[
             const SizedBox(height: 12),
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: Colors.red.shade50,
-                borderRadius: BorderRadius.circular(8),
+            _buildReversalInfo(
+              reversedBy: reversedBy,
+              reason: reversalReason,
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  // ============================================================
+  // PAYMENT TIMING
+  // ============================================================
+
+  Widget _buildPaymentTiming({
+    required String dueDate,
+    required String paymentDate,
+  }) {
+    final due = DateTime.tryParse(dueDate);
+    final paid = DateTime.tryParse(paymentDate);
+
+    if (due == null || paid == null) {
+      return const SizedBox.shrink();
+    }
+
+    final dueOnly = DateTime(
+      due.year,
+      due.month,
+      due.day,
+    );
+
+    final paidOnly = DateTime(
+      paid.year,
+      paid.month,
+      paid.day,
+    );
+
+    final difference =
+        paidOnly.difference(dueOnly).inDays;
+
+    if (difference > 0) {
+      return _timingBadge(
+        icon: Icons.warning_amber_rounded,
+        text: 'Delayed • $difference days late',
+        color: Colors.red,
+      );
+    }
+
+    if (difference < 0) {
+      return _timingBadge(
+        icon: Icons.speed,
+        text:
+            'Paid Early • ${difference.abs()} days before due',
+        color: Colors.green,
+      );
+    }
+
+    return _timingBadge(
+      icon: Icons.check_circle_outline,
+      text: 'Paid On Time',
+      color: Colors.green,
+    );
+  }
+
+  Widget _timingBadge({
+    required IconData icon,
+    required String text,
+    required Color color,
+  }) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(
+        horizontal: 12,
+        vertical: 9,
+      ),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.08),
+        borderRadius: BorderRadius.circular(9),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            icon,
+            size: 18,
+            color: color,
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              text,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: color,
               ),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Icon(
-                    Icons.info_outline,
-                    size: 17,
-                    color: Colors.red.shade700,
-                  ),
-                  const SizedBox(width: 7),
-                  Expanded(
-                    child: Text(
-                      'This payment has been reversed.',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.red.shade700,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ),
-                ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ============================================================
+  // REVERSAL
+  // ============================================================
+
+  Widget _buildReversalInfo({
+    required String reversedBy,
+    required String reason,
+  }) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.red.withOpacity(0.06),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Column(
+        crossAxisAlignment:
+            CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(
+                Icons.undo,
+                size: 18,
+                color: Colors.red,
+              ),
+              const SizedBox(width: 7),
+              Text(
+                'Payment Reversed',
+                style: TextStyle(
+                  fontWeight: FontWeight.w700,
+                  color: Colors.red.shade700,
+                ),
+              ),
+            ],
+          ),
+
+          if (reversedBy.isNotEmpty) ...[
+            const SizedBox(height: 6),
+            Text(
+              'Reversed By: $reversedBy',
+              style: TextStyle(
+                fontSize: 12,
+                color: Colors.grey.shade700,
+              ),
+            ),
+          ],
+
+          if (reason.isNotEmpty) ...[
+            const SizedBox(height: 4),
+            Text(
+              'Reason: $reason',
+              style: TextStyle(
+                fontSize: 12,
+                color: Colors.grey.shade700,
               ),
             ),
           ],
@@ -670,61 +1109,168 @@ class EmiPaymentReportScreen extends GetView<EmiPaymentReportController> {
     );
   }
 
-  Widget _detailItem({
-    required IconData icon,
-    required String label,
-    required String value,
-    bool valueBold = false,
-  }) {
-    return Row(
-      children: [
-        Icon(icon, size: 17, color: Colors.grey.shade600),
-        const SizedBox(width: 7),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                label,
-                style: TextStyle(fontSize: 10, color: Colors.grey.shade500),
-              ),
-              const SizedBox(height: 2),
-              Text(
-                value,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: valueBold ? FontWeight.w800 : FontWeight.w600,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
   // ============================================================
   // STATUS BADGE
   // ============================================================
 
   Widget _statusBadge(String status) {
-    final bool reversed = status.toLowerCase() == 'reversed';
+    final isReversed =
+        status.toLowerCase() == 'reversed';
+
+    final color =
+        isReversed ? Colors.red : Colors.green;
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
+      padding: const EdgeInsets.symmetric(
+        horizontal: 9,
+        vertical: 5,
+      ),
       decoration: BoxDecoration(
-        color: reversed ? Colors.red.shade50 : Colors.green.shade50,
+        color: color.withOpacity(0.1),
         borderRadius: BorderRadius.circular(20),
       ),
       child: Text(
-        status.isEmpty ? '-' : status,
+        status,
         style: TextStyle(
-          fontSize: 10,
+          fontSize: 11,
           fontWeight: FontWeight.w700,
-          color: reversed ? Colors.red.shade700 : Colors.green.shade700,
+          color: color,
         ),
+      ),
+    );
+  }
+
+  // ============================================================
+  // DETAIL ITEM
+  // ============================================================
+
+  Widget _detailItem(
+    String title,
+    String value, {
+    bool isAmount = false,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(
+        horizontal: 8,
+      ),
+      child: Column(
+        crossAxisAlignment:
+            CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: TextStyle(
+              fontSize: 11,
+              color: Colors.grey.shade600,
+            ),
+          ),
+          const SizedBox(height: 3),
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: isAmount ? 15 : 13,
+              fontWeight: isAmount
+                  ? FontWeight.w700
+                  : FontWeight.w600,
+              color: isAmount
+                  ? AppColors.black
+                  : AppColors.black,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ============================================================
+  // INFO ROW
+  // ============================================================
+
+  Widget _infoRow(
+    IconData icon,
+    String title,
+    String value,
+  ) {
+    return Padding(
+      padding: const EdgeInsets.only(
+        bottom: 3,
+      ),
+      child: Row(
+        children: [
+          Icon(
+            icon,
+            size: 17,
+            color: AppColors.black,
+          ),
+          const SizedBox(width: 8),
+          Text(
+            '$title:',
+            style: TextStyle(
+              fontSize: 12,
+              color: Colors.grey.shade600,
+            ),
+          ),
+          const SizedBox(width: 5),
+          Expanded(
+            child: Text(
+              value,
+              textAlign: TextAlign.right,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: AppColors.black,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ============================================================
+  // EMPTY
+  // ============================================================
+
+  Widget _buildEmptyState() {
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        vertical: 50,
+        horizontal: 20,
+      ),
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: Colors.grey.shade300,
+        ),
+      ),
+      child: Column(
+        children: [
+          Icon(
+            Icons.receipt_long_outlined,
+            size: 55,
+            color: Colors.grey.shade400,
+          ),
+          const SizedBox(height: 12),
+          const Text(
+            'No payment transactions found',
+            style: TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.w600,
+              color: AppColors.black,
+            ),
+          ),
+          const SizedBox(height: 5),
+          Text(
+            'Try changing the filters or date range.',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 12,
+              color: Colors.grey.shade600,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -734,55 +1280,60 @@ class EmiPaymentReportScreen extends GetView<EmiPaymentReportController> {
   // ============================================================
 
   Widget _buildPagination() {
-    if (controller.payments.isEmpty) {
+    if (controller.totalPages.value <= 1) {
       return const SizedBox.shrink();
     }
 
-    final bool hasMore =
-        controller.currentPage.value < controller.totalPages.value;
-
-    return Column(
-      children: [
-        Text(
-          'Page ${controller.currentPage.value} '
-          'of ${controller.totalPages.value} '
-          '• ${controller.totalRecords.value} transactions',
-          style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
-          textAlign: TextAlign.center,
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: 12,
+        vertical: 10,
+      ),
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: Colors.grey.shade300,
         ),
-
-        const SizedBox(height: 10),
-
-        if (hasMore)
-          SizedBox(
-            width: double.infinity,
-            height: 44,
-            child: OutlinedButton.icon(
-              onPressed: controller.loadingMore.value
-                  ? null
-                  : () {
-                      controller.loadMore();
-                    },
-              icon: controller.loadingMore.value
-                  ? const SizedBox(
-                      width: 16,
-                      height: 16,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : const Icon(Icons.expand_more),
-              label: Text(
-                controller.loadingMore.value ? 'Loading...' : 'Load More',
-              ),
-              style: OutlinedButton.styleFrom(
-                foregroundColor: const Color(0xFF8B1C1C),
-                side: const BorderSide(color: Color(0xFF8B1C1C)),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
+      ),
+      child: Row(
+        children: [
+          IconButton(
+            onPressed:
+                controller.currentPage.value > 1 &&
+                        !controller.loadingMore.value
+                    ? controller.previousPage
+                    : null,
+            icon: const Icon(
+              Icons.chevron_left,
+            ),
+          ),
+          Expanded(
+            child: Center(
+              child: Text(
+                'Page ${controller.currentPage.value} '
+                'of ${controller.totalPages.value}',
+                style: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.black,
                 ),
               ),
             ),
           ),
-      ],
+          IconButton(
+            onPressed:
+                controller.currentPage.value <
+                            controller.totalPages.value &&
+                        !controller.loadingMore.value
+                    ? controller.nextPage
+                    : null,
+            icon: const Icon(
+              Icons.chevron_right,
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -790,90 +1341,171 @@ class EmiPaymentReportScreen extends GetView<EmiPaymentReportController> {
   // DATE PICKERS
   // ============================================================
 
- Future<void> _selectFromDate(BuildContext context) async {
-  final DateTime? selected = await showDatePicker(
-    context: context,
-    initialDate: _parseDate(controller.fromDate.value) ?? DateTime.now(),
-    firstDate: DateTime(2020),
-    lastDate: DateTime.now(),
-  );
+  Future<void> _selectFromDate(
+    BuildContext context,
+  ) async {
+    final initial =
+        _parseDate(controller.fromDate.value);
 
-  if (selected == null) return;
+    final selected = await showDatePicker(
+      context: context,
+      initialDate:
+          initial ?? DateTime.now(),
+      firstDate: DateTime(2020),
+      lastDate: DateTime.now(),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme:
+                const ColorScheme.light(
+              primary: AppColors.primary,
+              onPrimary: AppColors.black,
+              onSurface: AppColors.black,
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
 
-  controller.setFromDate(selected); // was: controller.setFromDate(_formatDate(selected))
-}
+    if (selected != null) {
+      controller.setFromDate(selected);
+    }
+  }
 
-Future<void> _selectToDate(BuildContext context) async {
-  final DateTime? selected = await showDatePicker(
-    context: context,
-    initialDate: _parseDate(controller.toDate.value) ?? DateTime.now(),
-    firstDate: DateTime(2020),
-    lastDate: DateTime.now(),
-  );
+  Future<void> _selectToDate(
+    BuildContext context,
+  ) async {
+    final initial =
+        _parseDate(controller.toDate.value);
 
-  if (selected == null) return;
+    final selected = await showDatePicker(
+      context: context,
+      initialDate:
+          initial ?? DateTime.now(),
+      firstDate: DateTime(2020),
+      lastDate: DateTime.now(),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme:
+                const ColorScheme.light(
+              primary: AppColors.primary,
+              onPrimary: AppColors.black,
+              onSurface: AppColors.black,
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
 
-  controller.setToDate(selected); // was: controller.setToDate(_formatDate(selected))
-}
+    if (selected != null) {
+      controller.setToDate(selected);
+    }
+  }
+
+  // ============================================================
+  // INPUT DECORATION
+  // ============================================================
+
+  InputDecoration _inputDecoration(
+    IconData icon,
+    String label,
+  ) {
+    return InputDecoration(
+      labelText: label,
+      prefixIcon: Icon(
+        icon,
+        size: 20,
+        color: AppColors.black,
+      ),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(10),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(10),
+        borderSide: BorderSide(
+          color: Colors.grey.shade300,
+        ),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(10),
+        borderSide: const BorderSide(
+          color: AppColors.primary,
+          width: 1.5,
+        ),
+      ),
+      filled: true,
+      fillColor: AppColors.white,
+      contentPadding:
+          const EdgeInsets.symmetric(
+        horizontal: 12,
+        vertical: 14,
+      ),
+    );
+  }
 
   // ============================================================
   // HELPERS
   // ============================================================
 
-  String _stringValue(dynamic value) {
-    if (value == null) return '';
-    return value.toString();
-  }
+  String _stringValue(
+    dynamic value,
+    String fallback,
+  ) {
+    if (value == null) {
+      return fallback;
+    }
 
-  int _intValue(dynamic value) {
-    if (value == null) return 0;
+    final result = value.toString().trim();
 
-    if (value is int) return value;
-
-    return int.tryParse(value.toString()) ?? 0;
+    return result.isEmpty
+        ? fallback
+        : result;
   }
 
   double _doubleValue(dynamic value) {
-    if (value == null) return 0;
+    if (value == null) {
+      return 0;
+    }
 
     if (value is num) {
       return value.toDouble();
     }
 
-    return double.tryParse(value.toString()) ?? 0;
+    return double.tryParse(
+          value.toString(),
+        ) ??
+        0;
   }
 
   String _money(double value) {
     return '₹${value.toStringAsFixed(2)}';
   }
 
-  String _displayDate(String value) {
-    if (value.isEmpty) return '-';
+  String _formatDate(String value) {
+    if (value.isEmpty || value == '-') {
+      return '-';
+    }
 
-    try {
-      final DateTime date = DateTime.parse(value);
+    final date =
+        DateTime.tryParse(value);
 
-      return '${date.day.toString().padLeft(2, '0')}/'
-          '${date.month.toString().padLeft(2, '0')}/'
-          '${date.year}';
-    } catch (_) {
+    if (date == null) {
       return value;
     }
-  }
 
-  String _formatDate(DateTime date) {
-    return '${date.year}-'
-        '${date.month.toString().padLeft(2, '0')}-'
-        '${date.day.toString().padLeft(2, '0')}';
+    return '${date.day.toString().padLeft(2, '0')}/'
+        '${date.month.toString().padLeft(2, '0')}/'
+        '${date.year}';
   }
 
   DateTime? _parseDate(String value) {
-    if (value.trim().isEmpty) return null;
-
-    try {
-      return DateTime.parse(value);
-    } catch (_) {
+    if (value.isEmpty) {
       return null;
     }
+
+    return DateTime.tryParse(value);
   }
 }

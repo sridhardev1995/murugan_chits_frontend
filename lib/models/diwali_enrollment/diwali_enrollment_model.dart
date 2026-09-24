@@ -1,3 +1,7 @@
+// ============================================================
+// DIWALI ENROLLMENT
+// ============================================================
+
 class DiwaliEnrollmentModel {
   final int id;
   final int customerId;
@@ -276,6 +280,9 @@ class DiwaliPaymentTransactionModel {
   final String paymentMode;
   final String paymentDate;
 
+  // NEW
+  final String? receiptNumber;
+
   final String? paymentGroupId;
 
   final String status;
@@ -295,6 +302,10 @@ class DiwaliPaymentTransactionModel {
     required this.amount,
     required this.paymentMode,
     required this.paymentDate,
+
+    // NEW
+    this.receiptNumber,
+
     this.paymentGroupId,
     required this.status,
     this.reversedAt,
@@ -326,6 +337,12 @@ class DiwaliPaymentTransactionModel {
 
       paymentDate:
           _dateOnly(json['payment_date']),
+
+      // NEW
+      receiptNumber:
+          _nullableString(
+        json['receipt_number'],
+      ),
 
       paymentGroupId:
           _nullableString(
@@ -379,10 +396,17 @@ class DiwaliPaymentTransactionModel {
 class DiwaliPaymentResult {
   final String? paymentGroupId;
 
+  // NEW
+  final String? receiptNumber;
+
   final DiwaliEnrollmentWeekModel week;
 
   const DiwaliPaymentResult({
     this.paymentGroupId,
+
+    // NEW
+    this.receiptNumber,
+
     required this.week,
   });
 }
@@ -394,11 +418,18 @@ class DiwaliPaymentResult {
 class DiwaliBulkPaymentResult {
   final String? paymentGroupId;
 
+  // NEW
+  final String? receiptNumber;
+
   final double totalAmount;
   final double appliedAmount;
 
   const DiwaliBulkPaymentResult({
     this.paymentGroupId,
+
+    // NEW
+    this.receiptNumber,
+
     required this.totalAmount,
     required this.appliedAmount,
   });
@@ -421,11 +452,17 @@ class DiwaliPaymentRevertResult {
   final int weekNumber;
   final double reversedAmount;
 
+  // NEW
+  final String? receiptNumber;
+
   const DiwaliPaymentRevertResult({
     required this.transactionId,
     required this.enrollmentId,
     required this.weekNumber,
     required this.reversedAmount,
+
+    // NEW
+    this.receiptNumber,
   });
 }
 
@@ -436,12 +473,19 @@ class DiwaliPaymentRevertResult {
 class DiwaliPaymentGroupRevertResult {
   final String? paymentGroupId;
 
+  // NEW
+  final String? receiptNumber;
+
   final int transactionCount;
 
   final double totalReversed;
 
   const DiwaliPaymentGroupRevertResult({
     this.paymentGroupId,
+
+    // NEW
+    this.receiptNumber,
+
     required this.transactionCount,
     required this.totalReversed,
   });

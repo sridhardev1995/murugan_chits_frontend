@@ -5,6 +5,10 @@ class EmiPaymentModel {
   final double? amount;
   final String? paymentMode;
   final String? paymentDate;
+
+  // Receipt number
+  final String? receiptNumber;
+
   final String? status;
   final String? reversedAt;
   final int? reversedBy;
@@ -19,6 +23,10 @@ class EmiPaymentModel {
     this.amount,
     this.paymentMode,
     this.paymentDate,
+
+    // Receipt number
+    this.receiptNumber,
+
     this.status,
     this.reversedAt,
     this.reversedBy,
@@ -75,6 +83,10 @@ class EmiPaymentModel {
 
       paymentDate:
           json['payment_date']?.toString(),
+
+      // Receipt number
+      receiptNumber:
+          json['receipt_number']?.toString(),
 
       status:
           json['status']?.toString(),
