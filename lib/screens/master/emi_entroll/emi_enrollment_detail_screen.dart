@@ -9,7 +9,7 @@ import 'package:sri_murugan_chits/screens/master/emi_entroll/emi_enrollment_cont
 import 'package:sri_murugan_chits/utils/colors/app_colors.dart';
 import 'package:sri_murugan_chits/utils/colors/app_gradients.dart';
 import 'package:sri_murugan_chits/utils/global/app_text_style.dart';
-
+import 'package:sri_murugan_chits/utils/global/payment_receipt_widget.dart';
 class EmiEnrollmentDetailScreen extends StatefulWidget {
   final int enrollmentId;
 

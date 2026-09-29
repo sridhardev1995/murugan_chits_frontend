@@ -8,8 +8,8 @@ import 'package:sri_murugan_chits/utils/colors/gradient_button.dart';
 class LoginScreen extends GetView<AuthController> {
   LoginScreen({super.key});
 
-  final emailController = TextEditingController();
-  final passwordController = TextEditingController();
+  final emailController = TextEditingController(text: 'admin');
+  final passwordController = TextEditingController(text: 'Admin@12345');
 
   @override
   Widget build(BuildContext context) {

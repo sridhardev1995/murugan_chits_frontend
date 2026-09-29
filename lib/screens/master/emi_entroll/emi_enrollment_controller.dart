@@ -7,7 +7,10 @@ import 'package:sri_murugan_chits/models/emi_entroll/emi_installment_model.dart'
 import 'package:sri_murugan_chits/models/emi_entroll/emi_payment_model.dart';
 import 'package:sri_murugan_chits/models/emi_scheme/emi_scheme_model.dart';
 import 'package:sri_murugan_chits/models/emi_entroll/emi_enrollment_model.dart';
+
 import 'package:sri_murugan_chits/services/repositary/emi_entroll/emi_enrollment_repository.dart';
+
+import 'package:sri_murugan_chits/utils/global/payment_receipt_widget.dart';
 
 class EmiEnrollmentController extends GetxController {
   final EnrollmentRepository repository =
@@ -68,7 +71,6 @@ class EmiEnrollmentController extends GetxController {
   // STATUS FILTER
   // ============================================================
 
-  /// Default status is Active.
   final RxString selectedStatus =
       'Active'.obs;
 
@@ -129,7 +131,6 @@ class EmiEnrollmentController extends GetxController {
   final RxDouble upiTotal =
       0.0.obs;
 
-  // Currently selected installment for payment UI
   final Rxn<EmiInstallmentModel>
       selectedInstallment =
       Rxn<EmiInstallmentModel>();
@@ -157,7 +158,6 @@ class EmiEnrollmentController extends GetxController {
       'selectedStatus=${selectedStatus.value}',
     );
 
-    // Load Active enrollments automatically.
     loadEnrollments();
   }
 
@@ -195,12 +195,10 @@ class EmiEnrollmentController extends GetxController {
         scheme;
 
     weeksController.text =
-        scheme.defaultWeeks.toString() ?? '';
+        scheme.defaultWeeks.toString();
 
     commissionValueController.text =
-        scheme.defaultCommissionValue
-                .toString() ??
-            '';
+        scheme.defaultCommissionValue.toString();
 
     selectedCommissionType.value =
         scheme.defaultCommissionType ??
@@ -220,10 +218,6 @@ class EmiEnrollmentController extends GetxController {
     );
 
     if (selectedCustomer.value == null) {
-      _log(
-        '🔴 [EMI validate] customer not selected',
-      );
-
       Get.snackbar(
         'Validation',
         'Please select a customer',
@@ -235,10 +229,6 @@ class EmiEnrollmentController extends GetxController {
     }
 
     if (selectedScheme.value == null) {
-      _log(
-        '🔴 [EMI validate] scheme not selected',
-      );
-
       Get.snackbar(
         'Validation',
         'Please select a scheme',
@@ -256,10 +246,6 @@ class EmiEnrollmentController extends GetxController {
 
     if (amount == null ||
         amount <= 0) {
-      _log(
-        '🔴 [EMI validate] invalid amount: $amount',
-      );
-
       Get.snackbar(
         'Validation',
         'Enter a valid requested amount',
@@ -269,10 +255,6 @@ class EmiEnrollmentController extends GetxController {
 
       return false;
     }
-
-    _log(
-      '🟢 [EMI validate] passed',
-    );
 
     return true;
   }
@@ -300,9 +282,7 @@ class EmiEnrollmentController extends GetxController {
 
       final commissionValue =
           double.tryParse(
-        commissionValueController
-            .text
-            .trim(),
+        commissionValueController.text.trim(),
       );
 
       final weeks =
@@ -315,17 +295,6 @@ class EmiEnrollmentController extends GetxController {
               .toIso8601String()
               .split('T')
               .first;
-
-      _log(
-        '🔵 [EMI createEnrollment] request => '
-        'customerId=${selectedCustomer.value!.id} '
-        'schemeId=${selectedScheme.value!.id} '
-        'requestedAmount=$requestedAmount '
-        'commissionType=${selectedCommissionType.value} '
-        'commissionValue=$commissionValue '
-        'weeks=$weeks '
-        'startDate=$startDateStr',
-      );
 
       final result =
           await repository.createEnrollment(
@@ -378,12 +347,6 @@ class EmiEnrollmentController extends GetxController {
       );
     } finally {
       isSaving.value = false;
-
-      _log(
-        '⚪ [EMI createEnrollment] '
-        'finished '
-        'isSaving=${isSaving.value}',
-      );
     }
   }
 
@@ -392,10 +355,6 @@ class EmiEnrollmentController extends GetxController {
   // ============================================================
 
   void clearForm() {
-    _log(
-      '⚪ [EMI clearForm]',
-    );
-
     selectedCustomer.value = null;
 
     selectedScheme.value = null;
@@ -423,7 +382,6 @@ class EmiEnrollmentController extends GetxController {
     try {
       if (refresh) {
         isLoading.value = true;
-
         currentPage = 1;
       } else {
         isLoadingMore.value = true;
@@ -440,13 +398,9 @@ class EmiEnrollmentController extends GetxController {
           await repository.getEnrollments(
         page: currentPage,
         limit: pageLimit,
-
         customerId: '',
-
         schemeId: '',
-
-        status:
-            selectedStatus.value,
+        status: selectedStatus.value,
       );
 
       final rawEnrollments =
@@ -478,10 +432,6 @@ class EmiEnrollmentController extends GetxController {
           newItems,
         );
       }
-
-      // ========================================================
-      // PAGINATION
-      // ========================================================
 
       final pagination =
           result['pagination'];
@@ -539,7 +489,6 @@ class EmiEnrollmentController extends GetxController {
       }
     } finally {
       isLoading.value = false;
-
       isLoadingMore.value = false;
     }
   }
@@ -834,10 +783,6 @@ class EmiEnrollmentController extends GetxController {
         emiSummary.clear();
       }
 
-      // ========================================================
-      // PAYMENT SUMMARY
-      // ========================================================
-
       final paymentSummary =
           result['paymentSummary'];
 
@@ -894,6 +839,11 @@ class EmiEnrollmentController extends GetxController {
   // - UPI
   // - Partial
   // - Paid
+  //
+  // NEW:
+  // - Receipt number
+  // - Receipt popup
+  // - Remaining balance
   // ============================================================
 
   Future<bool>
@@ -930,6 +880,13 @@ class EmiEnrollmentController extends GetxController {
       isPaymentLoading.value =
           true;
 
+      final actualPaymentDate =
+          paidDate ??
+              DateTime.now()
+                  .toIso8601String()
+                  .split('T')
+                  .first;
+
       _log(
         '🔵 [EMI collect] '
         'installmentId=${installment.id} '
@@ -938,7 +895,11 @@ class EmiEnrollmentController extends GetxController {
         'status=$status',
       );
 
-      final updated =
+      // ========================================================
+      // API PAYMENT
+      // ========================================================
+
+      final result =
           await repository
               .collectInstallment(
         installmentId:
@@ -950,45 +911,122 @@ class EmiEnrollmentController extends GetxController {
         paymentMode:
             paymentMode,
         paidDate:
-            paidDate ??
-                DateTime.now()
-                    .toIso8601String()
-                    .split('T')
-                    .first,
+            actualPaymentDate,
       );
 
-      // --------------------------------------------------------
-      // Update local schedule
-      // --------------------------------------------------------
-
-      _updateInstallment(
-        updated,
+      _log(
+        '🟢 [EMI collect] '
+        'result=$result',
       );
 
-      // --------------------------------------------------------
-      // Refresh payment summary
-      // --------------------------------------------------------
+      // ========================================================
+      // GET UPDATED INSTALLMENT
+      // ========================================================
+
+      final updated =
+          result['installment'];
+
+      if (updated
+          is EmiInstallmentModel) {
+        _updateInstallment(
+          updated,
+        );
+      }
+
+      // ========================================================
+      // RECEIPT NUMBER
+      // ========================================================
+
+      final receiptNumber =
+          result['receiptNumber']
+                  ?.toString() ??
+              result['receipt_number']
+                  ?.toString();
+
+      _log(
+        '🧾 [EMI collect] '
+        'receiptNumber=$receiptNumber',
+      );
+
+      // ========================================================
+      // PAID AMOUNT
+      // ========================================================
+
+      final paidAmount =
+          _toDouble(
+                result['paidAmount'] ??
+                    result['paid_amount'],
+              ) ??
+              amount;
+
+      // ========================================================
+      // REFRESH PAYMENT HISTORY
+      // ========================================================
 
       await loadPaymentHistory(
         installment.id!,
       );
 
-      // --------------------------------------------------------
-      // Refresh complete schedule
-      // --------------------------------------------------------
+      // ========================================================
+      // REFRESH COMPLETE SCHEDULE
+      // ========================================================
 
       if (installment.enrollmentId !=
           null) {
         await loadEnrollmentSchedule(
           installment.enrollmentId!,
         );
+
+        // Refresh enrollment also.
+        await loadEnrollmentDetail(
+          installment.enrollmentId!,
+        );
       }
 
-      Get.snackbar(
-        'Success',
-        'EMI payment collected successfully',
-        snackPosition:
-            SnackPosition.BOTTOM,
+      // ========================================================
+      // GET LATEST REMAINING BALANCE
+      // ========================================================
+
+      final remainingBalance =
+          _extractEnrollmentBalance();
+
+      _log(
+        '💰 [EMI collect] '
+        'remainingBalance=$remainingBalance',
+      );
+
+      // ========================================================
+      // RECEIPT
+      // ========================================================
+
+      _showPaymentReceipt(
+        receiptNumber:
+            receiptNumber,
+        customerName:
+            _customerName(),
+        customerCode:
+            _customerCode(),
+        schemeName:
+            _schemeName(),
+        installmentLabel:
+            'Week ${installment.weekNo ?? '-'}',
+        paidAmount:
+            _formatAmount(
+          paidAmount,
+        ),
+        paymentMode:
+            paymentMode,
+        paymentDate:
+            _formatPaymentDate(
+          actualPaymentDate,
+        ),
+        remainingBalance:
+            _formatAmount(
+          remainingBalance,
+        ),
+        coveredWeeks: [
+          'Week ${installment.weekNo ?? '-'}',
+        ],
       );
 
       return true;
@@ -998,12 +1036,7 @@ class EmiEnrollmentController extends GetxController {
         'ERROR: $e\n$st',
       );
 
-      Get.snackbar(
-        'Payment Failed',
-        e.toString(),
-        snackPosition:
-            SnackPosition.BOTTOM,
-      );
+      _showPaymentError(e);
 
       return false;
     } finally {
@@ -1020,18 +1053,8 @@ class EmiEnrollmentController extends GetxController {
   // Cash ₹400
   // UPI  ₹600
   //
-  // payments:
-  //
-  // [
-  //   {
-  //     'amount': 400,
-  //     'paymentMode': 'Cash',
-  //   },
-  //   {
-  //     'amount': 600,
-  //     'paymentMode': 'UPI',
-  //   }
-  // ]
+  // One receipt number is generated
+  // for the complete split payment.
   // ============================================================
 
   Future<bool>
@@ -1090,6 +1113,13 @@ class EmiEnrollmentController extends GetxController {
       isPaymentLoading.value =
           true;
 
+      final actualPaymentDate =
+          paidDate ??
+              DateTime.now()
+                  .toIso8601String()
+                  .split('T')
+                  .first;
+
       _log(
         '🔵 [EMI split payment] '
         'installmentId=${installment.id} '
@@ -1097,7 +1127,11 @@ class EmiEnrollmentController extends GetxController {
         'status=$status',
       );
 
-      final updated =
+      // ========================================================
+      // API PAYMENT
+      // ========================================================
+
+      final result =
           await repository
               .collectSplitPayment(
         installmentId:
@@ -1107,45 +1141,122 @@ class EmiEnrollmentController extends GetxController {
         payments:
             payments,
         paidDate:
-            paidDate ??
-                DateTime.now()
-                    .toIso8601String()
-                    .split('T')
-                    .first,
+            actualPaymentDate,
       );
 
-      // --------------------------------------------------------
-      // Update local installment
-      // --------------------------------------------------------
-
-      _updateInstallment(
-        updated,
+      _log(
+        '🟢 [EMI split payment] '
+        'result=$result',
       );
 
-      // --------------------------------------------------------
-      // Reload payment history
-      // --------------------------------------------------------
+      // ========================================================
+      // UPDATED INSTALLMENT
+      // ========================================================
+
+      final updated =
+          result['installment'];
+
+      if (updated
+          is EmiInstallmentModel) {
+        _updateInstallment(
+          updated,
+        );
+      }
+
+      // ========================================================
+      // RECEIPT NUMBER
+      // ========================================================
+
+      final receiptNumber =
+          result['receiptNumber']
+                  ?.toString() ??
+              result['receipt_number']
+                  ?.toString();
+
+      // ========================================================
+      // PAID AMOUNT
+      // ========================================================
+
+      final paidAmount =
+          _toDouble(
+                result['paidAmount'] ??
+                    result['paid_amount'],
+              ) ??
+              _calculatePaymentTotal(
+                payments,
+              );
+
+      // ========================================================
+      // PAYMENT MODE
+      // ========================================================
+
+      final displayPaymentMode =
+          _extractPaymentMode(
+        payments,
+      );
+
+      // ========================================================
+      // REFRESH HISTORY
+      // ========================================================
 
       await loadPaymentHistory(
         installment.id!,
       );
 
-      // --------------------------------------------------------
-      // Reload complete schedule
-      // --------------------------------------------------------
+      // ========================================================
+      // REFRESH SCHEDULE + ENROLLMENT
+      // ========================================================
 
       if (installment.enrollmentId !=
           null) {
         await loadEnrollmentSchedule(
           installment.enrollmentId!,
         );
+
+        await loadEnrollmentDetail(
+          installment.enrollmentId!,
+        );
       }
 
-      Get.snackbar(
-        'Success',
-        'Split payment collected successfully',
-        snackPosition:
-            SnackPosition.BOTTOM,
+      // ========================================================
+      // REMAINING BALANCE
+      // ========================================================
+
+      final remainingBalance =
+          _extractEnrollmentBalance();
+
+      // ========================================================
+      // RECEIPT
+      // ========================================================
+
+      _showPaymentReceipt(
+        receiptNumber:
+            receiptNumber,
+        customerName:
+            _customerName(),
+        customerCode:
+            _customerCode(),
+        schemeName:
+            _schemeName(),
+        installmentLabel:
+            'Week ${installment.weekNo ?? '-'}',
+        paidAmount:
+            _formatAmount(
+          paidAmount,
+        ),
+        paymentMode:
+            displayPaymentMode,
+        paymentDate:
+            _formatPaymentDate(
+          actualPaymentDate,
+        ),
+        remainingBalance:
+            _formatAmount(
+          remainingBalance,
+        ),
+        coveredWeeks: [
+          'Week ${installment.weekNo ?? '-'}',
+        ],
       );
 
       return true;
@@ -1155,12 +1266,7 @@ class EmiEnrollmentController extends GetxController {
         'ERROR: $e\n$st',
       );
 
-      Get.snackbar(
-        'Payment Failed',
-        e.toString(),
-        snackPosition:
-            SnackPosition.BOTTOM,
-      );
+      _showPaymentError(e);
 
       return false;
     } finally {
@@ -1213,9 +1319,9 @@ class EmiEnrollmentController extends GetxController {
         installmentId,
       );
 
-      // --------------------------------------------------------
+      // ========================================================
       // HISTORY
-      // --------------------------------------------------------
+      // ========================================================
 
       final history =
           result['history'];
@@ -1238,9 +1344,9 @@ class EmiEnrollmentController extends GetxController {
         paymentHistory.clear();
       }
 
-      // --------------------------------------------------------
+      // ========================================================
       // SUMMARY
-      // --------------------------------------------------------
+      // ========================================================
 
       final summary =
           result['summary'];
@@ -1267,14 +1373,9 @@ class EmiEnrollmentController extends GetxController {
                 ) ??
                 0;
       } else {
-        paymentTotal.value =
-            0;
-
-        cashTotal.value =
-            0;
-
-        upiTotal.value =
-            0;
+        paymentTotal.value = 0;
+        cashTotal.value = 0;
+        upiTotal.value = 0;
       }
 
       _log(
@@ -1335,26 +1436,32 @@ class EmiEnrollmentController extends GetxController {
                 'Payment reversed by admin',
       );
 
-      // --------------------------------------------------------
-      // Reload history
-      // --------------------------------------------------------
+      // ========================================================
+      // RELOAD HISTORY
+      // ========================================================
 
       await loadPaymentHistory(
         installmentId,
       );
 
-      // --------------------------------------------------------
-      // Reload schedule
-      // --------------------------------------------------------
+      // ========================================================
+      // RELOAD SCHEDULE
+      // ========================================================
 
-      final installment =
-          installments.firstWhereOrNull(
-        (item) =>
-            item.id ==
-            installmentId,
-      );
+      EmiInstallmentModel?
+          installment;
 
-      if (installment?.enrollmentId !=
+      for (final item
+          in installments) {
+        if (item.id ==
+            installmentId) {
+          installment = item;
+          break;
+        }
+      }
+
+      if (installment
+              ?.enrollmentId !=
           null) {
         await loadEnrollmentSchedule(
           installment!
@@ -1391,27 +1498,410 @@ class EmiEnrollmentController extends GetxController {
   }
 
   // ============================================================
+  // PAYMENT RECEIPT
+  // ============================================================
+
+  void _showPaymentReceipt({
+  String? receiptNumber,
+  String? customerName,
+  String? customerCode,
+  String? schemeName,
+  String? installmentLabel,
+  String? paidAmount,
+  String? paymentMode,
+  String? paymentDate,
+  String? remainingBalance,
+  List<String>? coveredWeeks,
+}) {
+  _log(
+    '🧾 [EMI receipt] '
+    'receiptNumber=$receiptNumber '
+    'paidAmount=$paidAmount '
+    'remainingBalance=$remainingBalance',
+  );
+
+  // Close payment confirmation dialog
+  if (Get.isDialogOpen ?? false) {
+    Get.back();
+  }
+
+  Future.delayed(
+    const Duration(milliseconds: 100),
+    () {
+      Get.dialog(
+        Dialog(
+          backgroundColor:
+              Colors.transparent,
+          insetPadding:
+              const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 24,
+          ),
+          child: Stack(
+            children: [
+              SingleChildScrollView(
+                child: PaymentReceiptWidget(
+                  receiptNumber:
+                      receiptNumber,
+                  customerName:
+                      customerName,
+                  customerCode:
+                      customerCode,
+                  schemeName:
+                      schemeName,
+                  installmentLabel:
+                      installmentLabel,
+                  paidAmount:
+                      paidAmount,
+                  paymentMode:
+                      paymentMode,
+                  paymentDate:
+                      paymentDate,
+                  remainingBalance:
+                      remainingBalance,
+                  coveredWeeks:
+                      coveredWeeks,
+                  companyName:
+                      'Sri Murugan Chits',
+                  logoAssetPath:
+                      'assets/images/logo.png',
+                ),
+              ),
+
+              Positioned(
+                right: 8,
+                top: 8,
+                child: Material(
+                  color: Colors.black,
+                  shape:
+                      const CircleBorder(),
+                  child: InkWell(
+                    customBorder:
+                        const CircleBorder(),
+                    onTap: () {
+                      if (Get.isDialogOpen ??
+                          false) {
+                        Get.back();
+                      }
+                    },
+                    child:
+                        const Padding(
+                      padding:
+                          EdgeInsets.all(7),
+                      child: Icon(
+                        Icons.close,
+                        size: 20,
+                        color:
+                            Colors.white,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        barrierDismissible: false,
+      );
+    },
+  );
+}
+
+  // ============================================================
+  // PAYMENT TOTAL
+  // ============================================================
+
+  double _calculatePaymentTotal(
+    List<Map<String, dynamic>>
+        payments,
+  ) {
+    double total = 0;
+
+    for (final payment
+        in payments) {
+      total += _toDouble(
+            payment['amount'] ??
+                payment['amountPaid'] ??
+                payment['amount_paid'],
+          ) ??
+          0;
+    }
+
+    return total;
+  }
+
+  // ============================================================
+  // PAYMENT MODE
+  // ============================================================
+
+  String? _extractPaymentMode(
+    List<Map<String, dynamic>>
+        payments,
+  ) {
+    if (payments.isEmpty) {
+      return null;
+    }
+
+    final modes =
+        <String>{};
+
+    for (final payment
+        in payments) {
+      final mode =
+          payment['paymentMode'] ??
+              payment['payment_mode'];
+
+      if (mode != null &&
+          mode
+              .toString()
+              .trim()
+              .isNotEmpty) {
+        modes.add(
+          mode.toString(),
+        );
+      }
+    }
+
+    if (modes.isEmpty) {
+      return null;
+    }
+
+    if (modes.length == 1) {
+      return modes.first;
+    }
+
+    return modes.join(' + ');
+  }
+
+  // ============================================================
+  // CUSTOMER NAME
+  // ============================================================
+
+  String? _customerName() {
+    final enrollment =
+        selectedEnrollment.value;
+
+    if (enrollment == null) {
+      return null;
+    }
+
+    return enrollment.customerName;
+  }
+
+  // ============================================================
+  // CUSTOMER CODE
+  // ============================================================
+  //
+  // EMI enrollment model currently exposes customerId.
+  // We use that as the receipt customer reference.
+  // ============================================================
+
+  String? _customerCode() {
+    final enrollment =
+        selectedEnrollment.value;
+
+    if (enrollment == null) {
+      return null;
+    }
+
+    final customerId =
+        enrollment.customerId;
+
+    if (customerId == null) {
+      return null;
+    }
+
+    return customerId.toString();
+  }
+
+  // ============================================================
+  // SCHEME NAME
+  // ============================================================
+
+  String? _schemeName() {
+    final enrollment =
+        selectedEnrollment.value;
+
+    if (enrollment == null) {
+      return null;
+    }
+
+    return enrollment.schemeName;
+  }
+
+  // ============================================================
+  // REMAINING ENROLLMENT BALANCE
+  // ============================================================
+
+  double _extractEnrollmentBalance() {
+    // ----------------------------------------------------------
+    // First preference:
+    // summary.balance
+    // ----------------------------------------------------------
+
+    final directBalance =
+        _toDouble(
+      emiSummary['balance'],
+    );
+
+    if (directBalance !=
+        null) {
+      return directBalance;
+    }
+
+    // ----------------------------------------------------------
+    // Alternative backend names
+    // ----------------------------------------------------------
+
+    final remainingBalance =
+        _toDouble(
+      emiSummary[
+          'remainingBalance'],
+    );
+
+    if (remainingBalance !=
+        null) {
+      return remainingBalance;
+    }
+
+    final remainingBalanceSnake =
+        _toDouble(
+      emiSummary[
+          'remaining_balance'],
+    );
+
+    if (remainingBalanceSnake !=
+        null) {
+      return remainingBalanceSnake;
+    }
+
+    final pendingAmount =
+        _toDouble(
+      emiSummary[
+          'pendingAmount'],
+    );
+
+    if (pendingAmount !=
+        null) {
+      return pendingAmount;
+    }
+
+    final pendingAmountSnake =
+        _toDouble(
+      emiSummary[
+          'pending_amount'],
+    );
+
+    if (pendingAmountSnake !=
+        null) {
+      return pendingAmountSnake;
+    }
+
+    // ----------------------------------------------------------
+    // Fallback:
+    // Sum remaining balance of schedule
+    // ----------------------------------------------------------
+
+    if (installments.isNotEmpty) {
+      return installments.fold<double>(
+        0,
+        (sum, item) =>
+            sum + item.balance,
+      );
+    }
+
+    return 0;
+  }
+
+  // ============================================================
+  // FORMAT AMOUNT
+  // ============================================================
+
+  String _formatAmount(
+    double amount,
+  ) {
+    return '₹${amount.toStringAsFixed(2)}';
+  }
+
+  // ============================================================
+  // FORMAT PAYMENT DATE
+  // ============================================================
+
+  String _formatPaymentDate(
+    String date,
+  ) {
+    try {
+      final parsed =
+          DateTime.parse(date);
+
+      final day =
+          parsed.day
+              .toString()
+              .padLeft(
+                2,
+                '0',
+              );
+
+      final month =
+          parsed.month
+              .toString()
+              .padLeft(
+                2,
+                '0',
+              );
+
+      return '$day-$month-${parsed.year}';
+    } catch (_) {
+      return date;
+    }
+  }
+
+  // ============================================================
+  // PAYMENT ERROR
+  // ============================================================
+
+  void _showPaymentError(
+    dynamic error,
+  ) {
+    String message =
+        error.toString();
+
+    if (message.startsWith(
+      'Exception: ',
+    )) {
+      message =
+          message.substring(
+        'Exception: '.length,
+      );
+    }
+
+    Get.snackbar(
+      'Payment Failed',
+      message,
+      snackPosition:
+          SnackPosition.BOTTOM,
+    );
+  }
+
+  // ============================================================
   // CLEAR PAYMENT DATA
   // ============================================================
 
   void clearPaymentData() {
     paymentHistory.clear();
 
-    paymentTotal.value =
-        0;
+    paymentTotal.value = 0;
 
-    cashTotal.value =
-        0;
+    cashTotal.value = 0;
 
-    upiTotal.value =
-        0;
+    upiTotal.value = 0;
 
     selectedInstallment.value =
         null;
   }
 
   // ============================================================
-  // HELPER
+  // INTEGER HELPER
   // ============================================================
 
   int? _toInt(

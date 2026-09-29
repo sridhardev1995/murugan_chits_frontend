@@ -9,6 +9,17 @@ class EmiInstallmentModel {
   final String? status;
   final int? isOverdue;
 
+  // ============================================================
+  // COLLECTION DETAILS
+  // ============================================================
+
+  final int? customerId;
+  final String? customerName;
+  final String? customerPhone;
+  final int? schemeId;
+  final String? schemeName;
+  final int? overdueDays;
+
   EmiInstallmentModel({
     this.id,
     this.enrollmentId,
@@ -19,6 +30,14 @@ class EmiInstallmentModel {
     this.paidDate,
     this.status,
     this.isOverdue,
+
+    // Collection fields
+    this.customerId,
+    this.customerName,
+    this.customerPhone,
+    this.schemeId,
+    this.schemeName,
+    this.overdueDays,
   });
 
   factory EmiInstallmentModel.fromJson(
@@ -53,6 +72,10 @@ class EmiInstallmentModel {
     }
 
     return EmiInstallmentModel(
+      // ========================================================
+      // EXISTING EMI FIELDS
+      // ========================================================
+
       id: toInt(json['id']),
 
       enrollmentId:
@@ -78,6 +101,28 @@ class EmiInstallmentModel {
 
       isOverdue:
           toInt(json['is_overdue']),
+
+      // ========================================================
+      // COLLECTION FIELDS
+      // ========================================================
+
+      customerId:
+          toInt(json['customer_id']),
+
+      customerName:
+          json['customer_name']?.toString(),
+
+      customerPhone:
+          json['customer_phone']?.toString(),
+
+      schemeId:
+          toInt(json['scheme_id']),
+
+      schemeName:
+          json['scheme_name']?.toString(),
+
+      overdueDays:
+          toInt(json['overdue_days']),
     );
   }
 
@@ -111,4 +156,16 @@ class EmiInstallmentModel {
 
   bool get overdue =>
       isOverdue == 1;
+
+  // ============================================================
+  // COLLECTION HELPERS
+  // ============================================================
+
+  bool get hasCustomerDetails =>
+      customerName != null &&
+      customerName!.trim().isNotEmpty;
+
+  bool get hasOverdueDays =>
+      overdueDays != null &&
+      overdueDays! > 0;
 }

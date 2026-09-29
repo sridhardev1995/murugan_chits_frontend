@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:sri_murugan_chits/screens/collections/collection_screen.dart';
 import 'package:sri_murugan_chits/screens/dashboard.dart/dashboard_controller.dart';
+import 'package:sri_murugan_chits/screens/emi_collection/emi_collection_screen.dart';
+import 'package:sri_murugan_chits/screens/home/home_screen.dart';
 import 'package:sri_murugan_chits/screens/master/diwali_entrollment/diwali_enrollment_view.dart';
 import 'package:sri_murugan_chits/screens/master/emi_entroll/emi_enrollment_list_screen.dart';
 import 'package:sri_murugan_chits/screens/settings/settings_screen.dart';
@@ -40,22 +43,25 @@ class DashboardView extends GetView<DashboardController> {
       body: Obx(() {
         switch (controller.selectedIndex.value) {
           case 0:
-            return _dashboardPage(context);
+            return HomeScreen();
 
           case 1:
             return const EmiEnrollmentListScreen();
 
-          case 2:
-            return _collectionsPage(context);
+               case 2:
+            return EmiCollectionScreen();
 
           case 3:
-            return const DiwaliEnrollmentView(); // 👈 replaced reports
+            return DiwaliCollecion();
 
           case 4:
+            return const DiwaliEnrollmentView();
+
+          case 5:
             return const SettingsScreen();
 
           default:
-            return _dashboardPage(context);
+            return HomeScreen();
         }
       }),
 

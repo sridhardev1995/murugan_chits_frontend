@@ -198,17 +198,21 @@ class EnrollmentRepository {
   //
   // Cash / UPI
   //
-  // Example:
+  // Backend response:
   //
-  // collectInstallment(
-  //   installmentId: 1,
-  //   status: 'Partial',
-  //   amount: 400,
-  //   paymentMode: 'Cash',
-  // )
+  // data: {
+  //   installment: {...},
+  //   payments: [...],
+  //   receiptNumber: "...",
+  //   totalAmount: 1000,
+  //   paidAmount: 1000,
+  //   balance: 0,
+  //   status: "Paid",
+  //   paymentSummary: {...}
+  // }
   // ============================================================
 
-  Future<EmiInstallmentModel>
+  Future<Map<String, dynamic>>
       collectInstallment({
     required int installmentId,
     required String status,
@@ -233,26 +237,77 @@ class EnrollmentRepository {
 
     final responseData =
         Map<String, dynamic>.from(
-      response.data['data'],
+      response.data,
     );
 
-    // Backend new response:
-    //
-    // data: {
-    //   installment: {...},
-    //   payment: {...},
-    //   paymentSummary: {...}
-    // }
+    if (responseData['success'] != true) {
+      throw Exception(
+        responseData['message']?.toString() ??
+            'Unable to collect EMI payment',
+      );
+    }
+
+    final data =
+        Map<String, dynamic>.from(
+      responseData['data'] ?? {},
+    );
+
+    // ----------------------------------------------------------
+    // INSTALLMENT
+    // ----------------------------------------------------------
+
+    EmiInstallmentModel? installment;
 
     final installmentData =
-        responseData['installment'] ??
-        responseData;
+        data['installment'];
 
-    return EmiInstallmentModel.fromJson(
-      Map<String, dynamic>.from(
-        installmentData,
-      ),
-    );
+    if (installmentData is Map) {
+      installment =
+          EmiInstallmentModel.fromJson(
+        Map<String, dynamic>.from(
+          installmentData,
+        ),
+      );
+    }
+
+    // ----------------------------------------------------------
+    // RETURN EVERYTHING NEEDED BY CONTROLLER
+    // ----------------------------------------------------------
+
+    return {
+      'installment':
+          installment,
+
+      'payments':
+          data['payments'] ?? [],
+
+      'receiptNumber':
+          data['receiptNumber'] ??
+          data['receipt_number'],
+
+      'totalAmount':
+          data['totalAmount'] ??
+          data['total_amount'] ??
+          amount,
+
+      'paidAmount':
+          data['paidAmount'] ??
+          data['paid_amount'] ??
+          amount,
+
+      'balance':
+          data['balance'] ??
+          0,
+
+      'status':
+          data['status'] ??
+          status,
+
+      'paymentSummary':
+          data['paymentSummary'] ??
+          data['payment_summary'] ??
+          {},
+    };
   }
 
   // ============================================================
@@ -273,9 +328,12 @@ class EnrollmentRepository {
   //     'paymentMode': 'UPI',
   //   },
   // ]
+  //
+  // Backend generates ONE receipt number for
+  // the complete split payment.
   // ============================================================
 
-  Future<EmiInstallmentModel>
+  Future<Map<String, dynamic>>
       collectSplitPayment({
     required int installmentId,
     required String status,
@@ -305,18 +363,98 @@ class EnrollmentRepository {
 
     final responseData =
         Map<String, dynamic>.from(
-      response.data['data'],
+      response.data,
     );
+
+    if (responseData['success'] != true) {
+      throw Exception(
+        responseData['message']?.toString() ??
+            'Unable to collect split EMI payment',
+      );
+    }
+
+    final data =
+        Map<String, dynamic>.from(
+      responseData['data'] ?? {},
+    );
+
+    // ----------------------------------------------------------
+    // INSTALLMENT
+    // ----------------------------------------------------------
+
+    EmiInstallmentModel? installment;
 
     final installmentData =
-        responseData['installment'] ??
-        responseData;
+        data['installment'];
 
-    return EmiInstallmentModel.fromJson(
-      Map<String, dynamic>.from(
-        installmentData,
-      ),
-    );
+    if (installmentData is Map) {
+      installment =
+          EmiInstallmentModel.fromJson(
+        Map<String, dynamic>.from(
+          installmentData,
+        ),
+      );
+    }
+
+    // ----------------------------------------------------------
+    // CALCULATE REQUESTED TOTAL
+    // ----------------------------------------------------------
+
+    double requestedTotal = 0;
+
+    for (final payment in payments) {
+      final amount =
+          double.tryParse(
+                payment['amount']
+                        ?.toString() ??
+                    '0',
+              ) ??
+              0;
+
+      requestedTotal += amount;
+    }
+
+    // ----------------------------------------------------------
+    // RETURN EVERYTHING NEEDED BY CONTROLLER
+    // ----------------------------------------------------------
+
+    return {
+      'installment':
+          installment,
+
+      'payments':
+          data['payments'] ?? [],
+
+      'receiptNumber':
+          data['receiptNumber'] ??
+          data['receipt_number'],
+
+      'totalAmount':
+          data['totalAmount'] ??
+          data['total_amount'] ??
+          requestedTotal,
+
+      'paidAmount':
+          data['paidAmount'] ??
+          data['paid_amount'] ??
+          requestedTotal,
+
+      'balance':
+          data['balance'] ??
+          0,
+
+      'status':
+          data['status'] ??
+          status,
+
+      'paymentSummary':
+          data['paymentSummary'] ??
+          data['payment_summary'] ??
+          {},
+
+      'requestedTotal':
+          requestedTotal,
+    };
   }
 
   // ============================================================

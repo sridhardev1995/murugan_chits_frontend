@@ -20,7 +20,12 @@ class DashboardController extends GetxController {
     BottomNavigationBarItem(
       icon: Icon(Icons.account_balance_wallet_outlined),
       activeIcon: Icon(Icons.account_balance_wallet),
-      label: 'Collections',
+      label: 'EMI Collect',
+    ),
+     BottomNavigationBarItem(
+      icon: Icon(Icons.account_balance_wallet_outlined),
+      activeIcon: Icon(Icons.account_balance_wallet),
+      label: 'Diwali Collect',
     ),
     BottomNavigationBarItem(
       icon: Icon(Icons.card_giftcard_outlined),

@@ -166,7 +166,8 @@ class DiwaliEnrollmentController extends GetxController {
 
     final position = scrollController.position;
 
-    final nearBottom = position.pixels >= position.maxScrollExtent - 250;
+    final nearBottom =
+        position.pixels >= position.maxScrollExtent - 250;
 
     if (nearBottom) {
       loadMore();
@@ -178,17 +179,23 @@ class DiwaliEnrollmentController extends GetxController {
   // ============================================================
 
   void _onSearchChanged() {
-    hasSearchText.value = searchController.text.trim().isNotEmpty;
+    hasSearchText.value =
+        searchController.text.trim().isNotEmpty;
 
-    _log('⌨️ [search] text="${searchController.text}"');
+    _log(
+      '⌨️ [search] text="${searchController.text}"',
+    );
 
     if (_debounce?.isActive ?? false) {
       _debounce!.cancel();
     }
 
-    _debounce = Timer(const Duration(milliseconds: 400), () {
-      fetchEnrollments(reset: true);
-    });
+    _debounce = Timer(
+      const Duration(milliseconds: 400),
+      () {
+        fetchEnrollments(reset: true);
+      },
+    );
   }
 
   void clearSearch() {
@@ -206,7 +213,9 @@ class DiwaliEnrollmentController extends GetxController {
   // ============================================================
 
   void changeStatus(String status) {
-    _log('🎛️ [changeStatus] "$status"');
+    _log(
+      '🎛️ [changeStatus] "$status"',
+    );
 
     selectedStatus.value = status;
 
@@ -217,9 +226,12 @@ class DiwaliEnrollmentController extends GetxController {
   // FETCH ENROLLMENTS
   // ============================================================
 
-  Future<void> fetchEnrollments({bool reset = false}) async {
+  Future<void> fetchEnrollments({
+    bool reset = false,
+  }) async {
     _log(
-      '🔵 [fetchEnrollments] reset=$reset '
+      '🔵 [fetchEnrollments] '
+      'reset=$reset '
       'page=${page.value} '
       'search="${searchController.text.trim()}" '
       'status="${selectedStatus.value}"',
@@ -233,18 +245,27 @@ class DiwaliEnrollmentController extends GetxController {
     }
 
     try {
-      final result = await _repository.getEnrollments(
+      final result =
+          await _repository.getEnrollments(
         page: page.value,
         limit: _limit,
         search: searchController.text.trim(),
         status: selectedStatus.value,
       );
 
-      _log('🟢 [fetchEnrollments] raw keys=${result.keys}');
+      _log(
+        '🟢 [fetchEnrollments] '
+        'raw keys=${result.keys}',
+      );
 
-      final fetched = result['enrollments'] as List<DiwaliEnrollmentModel>;
+      final fetched =
+          result['enrollments']
+              as List<DiwaliEnrollmentModel>;
 
-      final pagination = result['pagination'] as Map<String, dynamic>? ?? {};
+      final pagination =
+          result['pagination']
+                  as Map<String, dynamic>? ??
+              {};
 
       _log(
         '🟢 [fetchEnrollments] '
@@ -252,7 +273,10 @@ class DiwaliEnrollmentController extends GetxController {
         'pagination=$pagination',
       );
 
-      totalPages.value = _toInt(pagination['totalPages'], fallback: 1);
+      totalPages.value = _toInt(
+        pagination['totalPages'],
+        fallback: 1,
+      );
 
       if (reset) {
         enrollments.assignAll(fetched);
@@ -260,7 +284,12 @@ class DiwaliEnrollmentController extends GetxController {
         enrollments.addAll(fetched);
       }
 
-      enrollments.sort((a, b) => b.currentChits.compareTo(a.currentChits));
+      enrollments.sort(
+        (a, b) =>
+            b.currentChits.compareTo(
+          a.currentChits,
+        ),
+      );
 
       _log(
         '🟢 [fetchEnrollments] '
@@ -268,7 +297,10 @@ class DiwaliEnrollmentController extends GetxController {
         'totalPages=${totalPages.value}',
       );
     } catch (e, st) {
-      _log('🔴 [fetchEnrollments] ERROR: $e\n$st');
+      _log(
+        '🔴 [fetchEnrollments] '
+        'ERROR: $e\n$st',
+      );
 
       _showError(e);
     } finally {
@@ -282,13 +314,15 @@ class DiwaliEnrollmentController extends GetxController {
   // ============================================================
 
   Future<void> loadMore() async {
-    if (isLoading.value || isLoadingMore.value) {
+    if (isLoading.value ||
+        isLoadingMore.value) {
       return;
     }
 
     if (page.value >= totalPages.value) {
       _log(
-        '⚪ [loadMore] last page reached '
+        '⚪ [loadMore] '
+        'last page reached '
         '${page.value}/${totalPages.value}',
       );
 
@@ -297,7 +331,10 @@ class DiwaliEnrollmentController extends GetxController {
 
     page.value++;
 
-    _log('🔵 [loadMore] loading page=${page.value}');
+    _log(
+      '🔵 [loadMore] '
+      'loading page=${page.value}',
+    );
 
     await fetchEnrollments();
   }
@@ -307,33 +344,51 @@ class DiwaliEnrollmentController extends GetxController {
   // ============================================================
 
   Future<void> refreshEnrollments() async {
-    _log('🔵 [refreshEnrollments]');
+    _log(
+      '🔵 [refreshEnrollments]',
+    );
 
-    await fetchEnrollments(reset: true);
+    await fetchEnrollments(
+      reset: true,
+    );
   }
 
   // ============================================================
   // CUSTOMER SEARCH
   // ============================================================
 
-  Future<List<CustomerModel>> searchCustomers(String query) async {
-    _log('🔵 [searchCustomers] query="$query"');
+  Future<List<CustomerModel>> searchCustomers(
+    String query,
+  ) async {
+    _log(
+      '🔵 [searchCustomers] '
+      'query="$query"',
+    );
 
     try {
-      final result = await _customerRepository.getCustomers(
+      final result =
+          await _customerRepository.getCustomers(
         page: 1,
         limit: 20,
         search: query.trim(),
         status: 'Active',
       );
 
-      final list = result['customers'] as List<CustomerModel>;
+      final list =
+          result['customers']
+              as List<CustomerModel>;
 
-      _log('🟢 [searchCustomers] count=${list.length}');
+      _log(
+        '🟢 [searchCustomers] '
+        'count=${list.length}',
+      );
 
       return list;
     } catch (e, st) {
-      _log('🔴 [searchCustomers] ERROR: $e\n$st');
+      _log(
+        '🔴 [searchCustomers] '
+        'ERROR: $e\n$st',
+      );
 
       _showError(e);
 
@@ -345,23 +400,35 @@ class DiwaliEnrollmentController extends GetxController {
   // SCHEME SEARCH
   // ============================================================
 
-  Future<List<DiwaliSchemeModel>> searchActiveSchemes() async {
-    _log('🔵 [searchActiveSchemes]');
+  Future<List<DiwaliSchemeModel>>
+      searchActiveSchemes() async {
+    _log(
+      '🔵 [searchActiveSchemes]',
+    );
 
     try {
-      final result = await _schemeRepository.getSchemes(
+      final result =
+          await _schemeRepository.getSchemes(
         page: 1,
         limit: 50,
         status: 'Active',
       );
 
-      final list = result['schemes'] as List<DiwaliSchemeModel>;
+      final list =
+          result['schemes']
+              as List<DiwaliSchemeModel>;
 
-      _log('🟢 [searchActiveSchemes] count=${list.length}');
+      _log(
+        '🟢 [searchActiveSchemes] '
+        'count=${list.length}',
+      );
 
       return list;
     } catch (e, st) {
-      _log('🔴 [searchActiveSchemes] ERROR: $e\n$st');
+      _log(
+        '🔴 [searchActiveSchemes] '
+        'ERROR: $e\n$st',
+      );
 
       _showError(e);
 
@@ -373,8 +440,13 @@ class DiwaliEnrollmentController extends GetxController {
   // PICK CUSTOMER
   // ============================================================
 
-  void pickCustomer(CustomerModel customer) {
-    _log('⚪ [pickCustomer] id=${customer.id}');
+  void pickCustomer(
+    CustomerModel customer,
+  ) {
+    _log(
+      '⚪ [pickCustomer] '
+      'id=${customer.id}',
+    );
 
     selectedCustomer.value = customer;
   }
@@ -383,8 +455,13 @@ class DiwaliEnrollmentController extends GetxController {
   // PICK SCHEME
   // ============================================================
 
-  void pickScheme(DiwaliSchemeModel scheme) {
-    _log('⚪ [pickScheme] id=${scheme.id}');
+  void pickScheme(
+    DiwaliSchemeModel scheme,
+  ) {
+    _log(
+      '⚪ [pickScheme] '
+      'id=${scheme.id}',
+    );
 
     selectedScheme.value = scheme;
   }
@@ -394,7 +471,9 @@ class DiwaliEnrollmentController extends GetxController {
   // ============================================================
 
   void clearFormSelections() {
-    _log('⚪ [clearFormSelections]');
+    _log(
+      '⚪ [clearFormSelections]',
+    );
 
     selectedCustomer.value = null;
     selectedScheme.value = null;
@@ -404,10 +483,15 @@ class DiwaliEnrollmentController extends GetxController {
   // CREATE ENROLLMENT
   // ============================================================
 
-  Future<Map<String, dynamic>?> createEnrollment(int chits) async {
-    final customer = selectedCustomer.value;
+  Future<Map<String, dynamic>?>
+      createEnrollment(
+    int chits,
+  ) async {
+    final customer =
+        selectedCustomer.value;
 
-    final scheme = selectedScheme.value;
+    final scheme =
+        selectedScheme.value;
 
     _log(
       '🔵 [createEnrollment] '
@@ -417,19 +501,31 @@ class DiwaliEnrollmentController extends GetxController {
     );
 
     if (customer == null) {
-      _showError(Exception('Please select a customer'));
+      _showError(
+        Exception(
+          'Please select a customer',
+        ),
+      );
 
       return null;
     }
 
     if (scheme == null) {
-      _showError(Exception('Please select a scheme'));
+      _showError(
+        Exception(
+          'Please select a scheme',
+        ),
+      );
 
       return null;
     }
 
     if (chits <= 0) {
-      _showError(Exception('Enter a valid number of chits'));
+      _showError(
+        Exception(
+          'Enter a valid number of chits',
+        ),
+      );
 
       return null;
     }
@@ -437,21 +533,30 @@ class DiwaliEnrollmentController extends GetxController {
     isSaving.value = true;
 
     try {
-      final result = await _repository.createEnrollment(
+      final result =
+          await _repository.createEnrollment(
         customerId: customer.id,
         schemeId: scheme.id,
         chits: chits,
       );
 
-      _log('🟢 [createEnrollment] result=$result');
+      _log(
+        '🟢 [createEnrollment] '
+        'result=$result',
+      );
 
       clearFormSelections();
 
-      await fetchEnrollments(reset: true);
+      await fetchEnrollments(
+        reset: true,
+      );
 
       return result;
     } catch (e, st) {
-      _log('🔴 [createEnrollment] ERROR: $e\n$st');
+      _log(
+        '🔴 [createEnrollment] '
+        'ERROR: $e\n$st',
+      );
 
       _showError(e);
 
@@ -465,32 +570,56 @@ class DiwaliEnrollmentController extends GetxController {
   // LOAD DETAIL
   // ============================================================
 
-  Future<void> loadEnrollmentDetail(int id) async {
-    _log('🔵 [loadEnrollmentDetail] id=$id');
+  Future<void> loadEnrollmentDetail(
+    int id,
+  ) async {
+    _log(
+      '🔵 [loadEnrollmentDetail] '
+      'id=$id',
+    );
 
     isDetailLoading.value = true;
 
     try {
-      final result = await _repository.getEnrollmentDetail(id);
-
-      _log('🟢 [loadEnrollmentDetail] keys=${result.keys}');
-
-      currentEnrollment.value = result['enrollment'] as DiwaliEnrollmentModel;
-
-      weeks.assignAll(result['weeks'] as List<DiwaliEnrollmentWeekModel>);
-
-      summary.value = result['summary'] as EnrollmentSummary;
+      final result =
+          await _repository.getEnrollmentDetail(
+        id,
+      );
 
       _log(
         '🟢 [loadEnrollmentDetail] '
-        'weeks=${weeks.length}',
+        'keys=${result.keys}',
+      );
+
+      currentEnrollment.value =
+          result['enrollment']
+              as DiwaliEnrollmentModel;
+
+      weeks.assignAll(
+        result['weeks']
+            as List<DiwaliEnrollmentWeekModel>,
+      );
+
+      summary.value =
+          result['summary']
+              as EnrollmentSummary;
+
+      _log(
+        '🟢 [loadEnrollmentDetail] '
+        'weeks=${weeks.length} '
+        'totalPaid=${summary.value?.totalPaid} '
+        'totalDue=${summary.value?.totalDue} '
+        'balance=${summary.value?.balance}',
       );
 
       await loadPaymentHistory(id);
 
       await loadAdjustmentLogs(id);
     } catch (e, st) {
-      _log('🔴 [loadEnrollmentDetail] ERROR: $e\n$st');
+      _log(
+        '🔴 [loadEnrollmentDetail] '
+        'ERROR: $e\n$st',
+      );
 
       _showError(e);
     } finally {
@@ -522,133 +651,157 @@ class DiwaliEnrollmentController extends GetxController {
           'Please enter at least one payment amount',
         ),
       );
+
       return false;
     }
 
     isPaying.value = true;
 
     try {
-      // ----------------------------------------------------------
+      // ==========================================================
       // 1. SAVE PAYMENT
-      // ----------------------------------------------------------
+      // ==========================================================
 
-      final result = await _repository.payWeek(
+      final result =
+          await _repository.payWeek(
         enrollmentId: enrollmentId,
         weekNumber: weekNumber,
         payments: payments,
         paymentDate: paymentDate,
       );
 
-      _log('🟢 [payWeek] result=$result');
-
-      // ----------------------------------------------------------
-      // 2. GET UPDATED WEEK
-      // ----------------------------------------------------------
-
-      final updatedWeek =
-          result['week'] as DiwaliEnrollmentWeekModel;
-
-      final index = weeks.indexWhere(
-        (w) => w.weekNumber == weekNumber,
-      );
-
       _log(
         '🟢 [payWeek] '
-        'week index in list=$index',
+        'result=$result',
+      );
+
+      final updatedWeek =
+          result['week']
+              as DiwaliEnrollmentWeekModel;
+
+      final index =
+          weeks.indexWhere(
+        (w) =>
+            w.weekNumber ==
+            weekNumber,
       );
 
       if (index != -1) {
         weeks[index] = updatedWeek;
       }
 
-      // ----------------------------------------------------------
-      // 3. CAPTURE RECEIPT DATA
-      // IMPORTANT:
-      // DO NOT WAIT FOR loadEnrollmentDetail()
-      // ----------------------------------------------------------
+      // ==========================================================
+      // 2. CAPTURE RECEIPT DETAILS
+      // ==========================================================
 
       final receiptNumber =
-          result['receiptNumber']?.toString() ??
-          result['receipt_number']?.toString();
+          result['receiptNumber']
+                  ?.toString() ??
+              result['receipt_number']
+                  ?.toString();
 
       final paidAmount = _toDouble(
         result['paidAmount'] ??
             result['paid_amount'] ??
-            _calculatePaymentTotal(payments),
+            _calculatePaymentTotal(
+              payments,
+            ),
       );
 
       final paymentMode =
-          _extractPaymentMode(payments);
-
-      final remainingBalance =
-          _extractRemainingBalance(
-        result,
-        updatedWeek,
+          _extractPaymentMode(
+        payments,
       );
 
       _log(
         '🧾 [payWeek] '
         'receipt=$receiptNumber '
         'paid=$paidAmount '
-        'balance=$remainingBalance '
         'mode=$paymentMode',
       );
 
-      // ----------------------------------------------------------
-      // 4. STOP PAYMENT LOADING IMMEDIATELY
-      // ----------------------------------------------------------
+      // ==========================================================
+      // 3. REFRESH ENROLLMENT
+      // ==========================================================
+      //
+      // This is important.
+      //
+      // Backend detail API calculates:
+      //
+      // balance = totalDue - totalPaid
+      //
+      // So we MUST refresh before reading
+      // summary.balance.
+      //
+
+      await loadEnrollmentDetail(
+        enrollmentId,
+      );
+
+      // ==========================================================
+      // 4. GET ACTUAL REMAINING BALANCE
+      // ==========================================================
+
+      final latestSummary =
+          summary.value;
+
+      final remainingBalance =
+          latestSummary?.balance ?? 0;
+
+      _log(
+        '💰 [payWeek] '
+        'latestTotalPaid='
+        '${latestSummary?.totalPaid} '
+        'latestTotalDue='
+        '${latestSummary?.totalDue} '
+        'remainingBalance='
+        '$remainingBalance',
+      );
+
+      // ==========================================================
+      // 5. STOP PAYMENT LOADING
+      // ==========================================================
 
       isPaying.value = false;
 
-      // ----------------------------------------------------------
-      // 5. SHOW RECEIPT IMMEDIATELY
-      // (this also closes the confirm dialog that's still open
-      //  on top of the navigator stack — see _showPaymentReceipt)
-      // ----------------------------------------------------------
+      // ==========================================================
+      // 6. SHOW RECEIPT
+      // ==========================================================
 
       _showPaymentReceipt(
         receiptNumber: receiptNumber,
         customerName: _customerName(),
         customerCode: _customerCode(),
         schemeName: _schemeName(),
-        installmentLabel: 'Week $weekNumber',
-        paidAmount: _formatAmount(paidAmount),
+        installmentLabel:
+            'Week $weekNumber',
+        paidAmount:
+            _formatAmount(
+          paidAmount,
+        ),
         paymentMode: paymentMode,
         paymentDate:
             paymentDate ??
-            _formatDate(DateTime.now()),
+            _formatDate(
+              DateTime.now(),
+            ),
         remainingBalance:
-            _formatAmount(remainingBalance),
+            _formatAmount(
+          remainingBalance,
+        ),
       );
-
-      // ----------------------------------------------------------
-      // 6. REFRESH DETAIL AFTER RECEIPT IS SHOWN
-      // ----------------------------------------------------------
-
-      // Don't block receipt display with these API calls.
-      Future.microtask(() async {
-        try {
-          await loadEnrollmentDetail(
-            enrollmentId,
-          );
-        } catch (e) {
-          _log(
-            '⚠️ [payWeek] background refresh error=$e',
-          );
-        }
-      });
 
       return true;
     } catch (e, st) {
       _log(
-        '🔴 [payWeek] ERROR: $e\n$st',
+        '🔴 [payWeek] '
+        'ERROR: $e\n$st',
       );
 
       _showError(e);
 
       return false;
     } finally {
-      // Safety fallback.
       isPaying.value = false;
     }
   }
@@ -672,7 +825,11 @@ class DiwaliEnrollmentController extends GetxController {
     );
 
     if (totalAmount <= 0) {
-      _showError(Exception('Enter a valid payment amount'));
+      _showError(
+        Exception(
+          'Enter a valid payment amount',
+        ),
+      );
 
       return false;
     }
@@ -680,66 +837,146 @@ class DiwaliEnrollmentController extends GetxController {
     isBulkPaying.value = true;
 
     try {
-      final result = await _repository.bulkPay(
+      // ==========================================================
+      // 1. SAVE BULK PAYMENT
+      // ==========================================================
+
+      final result =
+          await _repository.bulkPay(
         enrollmentId: enrollmentId,
         totalAmount: totalAmount,
         paymentMode: paymentMode,
         paymentDate: paymentDate,
       );
 
-      _log('🟢 [bulkPay] result=$result');
-
-      // ----------------------------------------------------------
-      // Capture receipt data BEFORE refreshing
-      // ----------------------------------------------------------
-
-      final receiptNumber =
-          result['receiptNumber']?.toString() ??
-          result['receipt_number']?.toString();
-
-      final applied = _toDouble(
-        result['appliedAmount'] ?? result['applied_amount'],
+      _log(
+        '🟢 [bulkPay] '
+        'result=$result',
       );
 
-      final remainingBalance = _extractBulkRemainingBalance(result);
+      // ==========================================================
+      // 2. CAPTURE RECEIPT DATA
+      // ==========================================================
 
-      final coveredWeeks = _extractCoveredWeeks(result);
+      final receiptNumber =
+          result['receiptNumber']
+                  ?.toString() ??
+              result['receipt_number']
+                  ?.toString();
 
-      // ----------------------------------------------------------
-      // Refresh enrollment
-      // ----------------------------------------------------------
+      final applied = _toDouble(
+        result['appliedAmount'] ??
+            result['applied_amount'] ??
+            0,
+      );
 
-      await loadEnrollmentDetail(enrollmentId);
+      _log(
+        '🧾 [bulkPay] '
+        'receipt=$receiptNumber '
+        'applied=$applied',
+      );
 
-      // ----------------------------------------------------------
-      // Stop loading BEFORE showing the receipt so the bulk-pay
-      // dialog's button isn't stuck in a spinner state underneath.
-      // ----------------------------------------------------------
+      // ==========================================================
+      // 3. REFRESH ENROLLMENT
+      // ==========================================================
+      //
+      // IMPORTANT:
+      // Do NOT read balance before this refresh.
+      //
+      // The old code was doing:
+      //
+      // remainingBalance =
+      //     _extractBulkRemainingBalance(result);
+      //
+      // before refreshing.
+      //
+      // That caused ₹0.00.
+      //
+
+      await loadEnrollmentDetail(
+        enrollmentId,
+      );
+
+      // ==========================================================
+      // 4. GET LATEST BALANCE
+      // ==========================================================
+
+      final latestSummary =
+          summary.value;
+
+      final remainingBalance =
+          latestSummary?.balance ?? 0;
+
+      _log(
+        '💰 [bulkPay] '
+        'latestTotalPaid='
+        '${latestSummary?.totalPaid} '
+        'latestTotalDue='
+        '${latestSummary?.totalDue} '
+        'remainingBalance='
+        '$remainingBalance',
+      );
+
+      // ==========================================================
+      // 5. FIND COVERED WEEKS
+      // ==========================================================
+      //
+      // Backend may not return coveredWeeks directly.
+      // So we use the freshly loaded payment history.
+      //
+
+      final coveredWeeks =
+          _extractCoveredWeeksFromHistory(
+        receiptNumber,
+      );
+
+      _log(
+        '📅 [bulkPay] '
+        'coveredWeeks=$coveredWeeks',
+      );
+
+      // ==========================================================
+      // 6. STOP LOADING
+      // ==========================================================
 
       isBulkPaying.value = false;
 
-      // ----------------------------------------------------------
-      // Show receipt
-      // (this also closes the bulk-pay dialog that's still open
-      //  on top of the navigator stack — see _showPaymentReceipt)
-      // ----------------------------------------------------------
+      // ==========================================================
+      // 7. SHOW RECEIPT
+      // ==========================================================
 
       _showPaymentReceipt(
         receiptNumber: receiptNumber,
         customerName: _customerName(),
         customerCode: _customerCode(),
         schemeName: _schemeName(),
-        installmentLabel: 'Advance / Bulk Payment',
-        paidAmount: _formatAmount(applied > 0 ? applied : totalAmount),
+        installmentLabel:
+            'Advance / Bulk Payment',
+        paidAmount: _formatAmount(
+          applied > 0
+              ? applied
+              : totalAmount,
+        ),
         paymentMode: paymentMode,
-        paymentDate: paymentDate ?? _formatDate(DateTime.now()),
-        remainingBalance: _formatAmount(remainingBalance),
-        coveredWeeks: coveredWeeks,
+        paymentDate:
+            paymentDate ??
+            _formatDate(
+              DateTime.now(),
+            ),
+        remainingBalance:
+            _formatAmount(
+          remainingBalance,
+        ),
+        coveredWeeks:
+            coveredWeeks,
       );
 
       return true;
     } catch (e, st) {
-      _log('🔴 [bulkPay] ERROR: $e\n$st');
+      _log(
+        '🔴 [bulkPay] '
+        'ERROR: $e\n$st',
+      );
 
       _showError(e);
 
@@ -769,33 +1006,38 @@ class DiwaliEnrollmentController extends GetxController {
       '🧾 [receipt] '
       'receiptNumber=$receiptNumber '
       'paidAmount=$paidAmount '
-      'remainingBalance=$remainingBalance',
+      'remainingBalance=$remainingBalance '
+      'coveredWeeks=$coveredWeeks',
     );
 
-    // ----------------------------------------------------------
-    // IMPORTANT FIX:
-    // At this point the "Pay" / "Bulk Payment" confirm dialog is
-    // still open and sitting on top of the Navigator stack.
-    // If we just push the receipt dialog on top of it, the view's
-    // `Navigator.pop(dialogContext)` (called right after this
-    // function returns `true`) pops whatever is CURRENTLY on top
-    // — which is now the receipt dialog, not the confirm dialog.
-    // Net effect: confirm dialog stays open, receipt flashes and
-    // gets popped immediately.
+    // ==========================================================
+    // CLOSE PAYMENT CONFIRM DIALOG
+    // ==========================================================
     //
-    // Fix: close the currently-open confirm dialog ourselves
-    // before pushing the receipt dialog. The view no longer needs
-    // to (and no longer should) pop it manually.
-    // ----------------------------------------------------------
+    // The payment dialog is still open when this method is called.
+    //
+    // If we push receipt on top of it, the view's Navigator.pop()
+    // can accidentally close the receipt instead.
+    //
+    // So close the current payment dialog first.
+    //
 
     if (Get.isDialogOpen ?? false) {
       Get.back();
     }
 
+    // Small delay ensures the previous dialog is completely
+    // removed before opening the receipt dialog.
+    Future.delayed(
+  const Duration(milliseconds: 80),
+  () {
     Get.dialog(
       Dialog(
         backgroundColor: Colors.transparent,
-        insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+        insetPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 24,
+        ),
         child: Stack(
           children: [
             SingleChildScrollView(
@@ -822,11 +1064,17 @@ class DiwaliEnrollmentController extends GetxController {
                 child: InkWell(
                   customBorder: const CircleBorder(),
                   onTap: () {
-                    Get.back();
+                    if (Get.isDialogOpen ?? false) {
+                      Get.back();
+                    }
                   },
                   child: const Padding(
                     padding: EdgeInsets.all(7),
-                    child: Icon(Icons.close, size: 20, color: Colors.white),
+                    child: Icon(
+                      Icons.close,
+                      size: 20,
+                      color: Colors.white,
+                    ),
                   ),
                 ),
               ),
@@ -836,6 +1084,8 @@ class DiwaliEnrollmentController extends GetxController {
       ),
       barrierDismissible: false,
     );
+  },
+);
   }
 
   // ============================================================
@@ -862,7 +1112,9 @@ class DiwaliEnrollmentController extends GetxController {
   // PAYMENT MODE
   // ============================================================
 
-  String? _extractPaymentMode(List<Map<String, dynamic>> payments) {
+  String? _extractPaymentMode(
+    List<Map<String, dynamic>> payments,
+  ) {
     if (payments.isEmpty) {
       return null;
     }
@@ -870,10 +1122,18 @@ class DiwaliEnrollmentController extends GetxController {
     final modes = <String>{};
 
     for (final payment in payments) {
-      final mode = payment['paymentMode'] ?? payment['payment_mode'];
+      final mode =
+          payment['paymentMode'] ??
+              payment['payment_mode'];
 
-      if (mode != null && mode.toString().trim().isNotEmpty) {
-        modes.add(mode.toString());
+      if (mode != null &&
+          mode
+              .toString()
+              .trim()
+              .isNotEmpty) {
+        modes.add(
+          mode.toString(),
+        );
       }
     }
 
@@ -891,99 +1151,68 @@ class DiwaliEnrollmentController extends GetxController {
   // ============================================================
   // REMAINING BALANCE
   // ============================================================
+  //
+  // This helper is kept for compatibility if another part of
+  // the controller needs it.
+  //
+  // Overall enrollment balance MUST come from summary.balance.
+  //
 
   double _extractRemainingBalance(
     Map<String, dynamic> result,
     DiwaliEnrollmentWeekModel updatedWeek,
   ) {
-    final direct = result['remainingBalance'] ?? result['remaining_balance'];
+    final direct =
+        result['remainingBalance'] ??
+            result['remaining_balance'];
 
     if (direct != null) {
-      return _toDouble(direct);
+      return _toDouble(
+        direct,
+      );
     }
 
-    // If backend doesn't return remaining balance,
-    // calculate from the current summary when possible.
-    final currentSummary = summary.value;
-
-    if (currentSummary != null) {
-      final dynamic raw = _readDynamicProperty(currentSummary, const [
+    final weekBalance =
+        _readDynamicProperty(
+      updatedWeek,
+      const [
         'remainingBalance',
         'remaining_balance',
-        'balance',
-        'totalDue',
-        'total_due',
-      ]);
-
-      if (raw != null) {
-        return _toDouble(raw);
-      }
-    }
-
-    final dynamic weekBalance = _readDynamicProperty(updatedWeek, const [
-      'remainingBalance',
-      'remaining_balance',
-      'balance',
-      'dueAmount',
-      'due_amount',
-    ]);
+      ],
+    );
 
     if (weekBalance != null) {
-      return _toDouble(weekBalance);
-    }
-
-    return 0;
-  }
-
-  double _extractBulkRemainingBalance(Map<String, dynamic> result) {
-    final value =
-        result['remainingBalance'] ??
-        result['remaining_balance'] ??
-        result['balance'] ??
-        result['totalDue'] ??
-        result['total_due'];
-
-    if (value != null) {
-      return _toDouble(value);
-    }
-
-    final currentSummary = summary.value;
-
-    if (currentSummary != null) {
-      final dynamic summaryValue = _readDynamicProperty(currentSummary, const [
-        'remainingBalance',
-        'remaining_balance',
-        'balance',
-        'totalDue',
-        'total_due',
-      ]);
-
-      if (summaryValue != null) {
-        return _toDouble(summaryValue);
-      }
+      return _toDouble(
+        weekBalance,
+      );
     }
 
     return 0;
   }
 
   // ============================================================
-  // COVERED WEEKS
+  // COVERED WEEKS FROM RESULT
   // ============================================================
 
-  List<String> _extractCoveredWeeks(Map<String, dynamic> result) {
+  List<String> _extractCoveredWeeks(
+    Map<String, dynamic> result,
+  ) {
     final dynamic raw =
         result['coveredWeeks'] ??
-        result['covered_weeks'] ??
-        result['weeksCovered'] ??
-        result['weeks_covered'];
+            result['covered_weeks'] ??
+            result['weeksCovered'] ??
+            result['weeks_covered'];
 
     if (raw is! List) {
       return [];
     }
 
-    return raw.map((item) {
-      if (item is Map<String, dynamic>) {
-        final week = item['weekNumber'] ?? item['week_number'] ?? item['week'];
+    return raw.map<String>((item) {
+      if (item is Map) {
+        final week =
+            item['weekNumber'] ??
+                item['week_number'] ??
+                item['week'];
 
         if (week != null) {
           return 'Week $week';
@@ -992,10 +1221,82 @@ class DiwaliEnrollmentController extends GetxController {
         return item.toString();
       }
 
-      return item.toString().startsWith('Week')
-          ? item.toString()
-          : 'Week ${item.toString()}';
+      final value =
+          item.toString();
+
+      return value.startsWith(
+        'Week',
+      )
+          ? value
+          : 'Week $value';
     }).toList();
+  }
+
+  // ============================================================
+  // COVERED WEEKS FROM PAYMENT HISTORY
+  // ============================================================
+  //
+  // Bulk payment uses one receipt number for multiple weeks.
+  //
+  // Example:
+  //
+  // SMC-26-27-000010
+  //
+  // Week 1 -> ₹1000
+  // Week 2 -> ₹1000
+  // Week 3 -> ₹500
+  //
+  // All rows have the same receipt_number.
+  //
+  // We read payment history after refresh and collect those weeks.
+  //
+
+  List<String> _extractCoveredWeeksFromHistory(
+    String? receiptNumber,
+  ) {
+    if (receiptNumber == null ||
+        receiptNumber.trim().isEmpty) {
+      return [];
+    }
+
+    final weekNumbers = <int>{};
+
+    for (final payment
+        in paymentHistory) {
+      final paymentReceipt =
+          payment['receipt_number'] ??
+              payment['receiptNumber'];
+
+      if (paymentReceipt
+              ?.toString() !=
+          receiptNumber) {
+        continue;
+      }
+
+      final rawWeek =
+          payment['week_number'] ??
+              payment['weekNumber'] ??
+              payment['week'];
+
+      final week =
+          _toInt(rawWeek);
+
+      if (week > 0) {
+        weekNumbers.add(
+          week,
+        );
+      }
+    }
+
+    final sortedWeeks =
+        weekNumbers.toList()
+          ..sort();
+
+    return sortedWeeks
+        .map(
+          (week) => 'Week $week',
+        )
+        .toList();
   }
 
   // ============================================================
@@ -1003,17 +1304,22 @@ class DiwaliEnrollmentController extends GetxController {
   // ============================================================
 
   String? _customerName() {
-    final enrollment = currentEnrollment.value;
+    final enrollment =
+        currentEnrollment.value;
 
     if (enrollment == null) {
       return null;
     }
 
-    final dynamic value = _readDynamicProperty(enrollment, const [
-      'customerName',
-      'customer_name',
-      'name',
-    ]);
+    final dynamic value =
+        _readDynamicProperty(
+      enrollment,
+      const [
+        'customerName',
+        'customer_name',
+        'name',
+      ],
+    );
 
     return value?.toString();
   }
@@ -1023,17 +1329,22 @@ class DiwaliEnrollmentController extends GetxController {
   // ============================================================
 
   String? _customerCode() {
-    final enrollment = currentEnrollment.value;
+    final enrollment =
+        currentEnrollment.value;
 
     if (enrollment == null) {
       return null;
     }
 
-    final dynamic value = _readDynamicProperty(enrollment, const [
-      'customerCode',
-      'customer_code',
-      'code',
-    ]);
+    final dynamic value =
+        _readDynamicProperty(
+      enrollment,
+      const [
+        'customerCode',
+        'customer_code',
+        'code',
+      ],
+    );
 
     return value?.toString();
   }
@@ -1043,16 +1354,21 @@ class DiwaliEnrollmentController extends GetxController {
   // ============================================================
 
   String? _schemeName() {
-    final enrollment = currentEnrollment.value;
+    final enrollment =
+        currentEnrollment.value;
 
     if (enrollment == null) {
       return null;
     }
 
-    final dynamic value = _readDynamicProperty(enrollment, const [
-      'schemeName',
-      'scheme_name',
-    ]);
+    final dynamic value =
+        _readDynamicProperty(
+      enrollment,
+      const [
+        'schemeName',
+        'scheme_name',
+      ],
+    );
 
     return value?.toString();
   }
@@ -1061,7 +1377,10 @@ class DiwaliEnrollmentController extends GetxController {
   // SAFE DYNAMIC PROPERTY
   // ============================================================
 
-  dynamic _readDynamicProperty(dynamic object, List<String> names) {
+  dynamic _readDynamicProperty(
+    dynamic object,
+    List<String> names,
+  ) {
     if (object == null) {
       return null;
     }
@@ -1069,7 +1388,9 @@ class DiwaliEnrollmentController extends GetxController {
     for (final name in names) {
       try {
         if (object is Map) {
-          if (object.containsKey(name)) {
+          if (object.containsKey(
+            name,
+          )) {
             return object[name];
           }
         }
@@ -1163,7 +1484,9 @@ class DiwaliEnrollmentController extends GetxController {
   // FORMAT AMOUNT
   // ============================================================
 
-  String _formatAmount(double amount) {
+  String _formatAmount(
+    double amount,
+  ) {
     return '₹${amount.toStringAsFixed(2)}';
   }
 
@@ -1171,10 +1494,20 @@ class DiwaliEnrollmentController extends GetxController {
   // FORMAT DATE
   // ============================================================
 
-  String _formatDate(DateTime date) {
-    final day = date.day.toString().padLeft(2, '0');
+  String _formatDate(
+    DateTime date,
+  ) {
+    final day =
+        date.day.toString().padLeft(
+              2,
+              '0',
+            );
 
-    final month = date.month.toString().padLeft(2, '0');
+    final month =
+        date.month.toString().padLeft(
+              2,
+              '0',
+            );
 
     return '$day-$month-${date.year}';
   }
@@ -1183,26 +1516,42 @@ class DiwaliEnrollmentController extends GetxController {
   // PAYMENT HISTORY
   // ============================================================
 
-  Future<void> loadPaymentHistory(int enrollmentId) async {
+  Future<void> loadPaymentHistory(
+    int enrollmentId,
+  ) async {
     _log(
       '🔵 [paymentHistory] '
       'enrollmentId=$enrollmentId',
     );
 
-    isPaymentHistoryLoading.value = true;
+    isPaymentHistoryLoading.value =
+        true;
 
     try {
-      final result = await _repository.getPaymentHistory(enrollmentId);
+      final result =
+          await _repository
+              .getPaymentHistory(
+        enrollmentId,
+      );
 
-      _log('🟢 [paymentHistory] count=${result.length}');
+      _log(
+        '🟢 [paymentHistory] '
+        'count=${result.length}',
+      );
 
-      paymentHistory.assignAll(result);
+      paymentHistory.assignAll(
+        result,
+      );
     } catch (e, st) {
-      _log('🔴 [paymentHistory] ERROR: $e\n$st');
+      _log(
+        '🔴 [paymentHistory] '
+        'ERROR: $e\n$st',
+      );
 
       _showError(e);
     } finally {
-      isPaymentHistoryLoading.value = false;
+      isPaymentHistoryLoading.value =
+          false;
     }
   }
 
@@ -1222,37 +1571,51 @@ class DiwaliEnrollmentController extends GetxController {
       'reason=$reason',
     );
 
-    isRevertingPayment.value = true;
+    isRevertingPayment.value =
+        true;
 
     try {
-      final result = await _repository.revertPayment(
+      final result =
+          await _repository.revertPayment(
         transactionId: transactionId,
         reason: reason,
       );
 
-      _log('🟢 [revertPayment] result=$result');
+      _log(
+        '🟢 [revertPayment] '
+        'result=$result',
+      );
 
-      await loadEnrollmentDetail(enrollmentId);
+      await loadEnrollmentDetail(
+        enrollmentId,
+      );
 
       final amount = _toDouble(
-        result['reversedAmount'] ?? result['reversed_amount'],
+        result['reversedAmount'] ??
+            result['reversed_amount'],
       );
 
       Get.snackbar(
         'Payment Reverted',
-        '₹${amount.toStringAsFixed(0)} payment reverted',
-        snackPosition: SnackPosition.BOTTOM,
+        '₹${amount.toStringAsFixed(0)} '
+            'payment reverted',
+        snackPosition:
+            SnackPosition.BOTTOM,
       );
 
       return true;
     } catch (e, st) {
-      _log('🔴 [revertPayment] ERROR: $e\n$st');
+      _log(
+        '🔴 [revertPayment] '
+        'ERROR: $e\n$st',
+      );
 
       _showError(e);
 
       return false;
     } finally {
-      isRevertingPayment.value = false;
+      isRevertingPayment.value =
+          false;
     }
   }
 
@@ -1272,42 +1635,58 @@ class DiwaliEnrollmentController extends GetxController {
       'reason=$reason',
     );
 
-    isRevertingPaymentGroup.value = true;
+    isRevertingPaymentGroup.value =
+        true;
 
     try {
-      final result = await _repository.revertPaymentGroup(
-        paymentGroupId: paymentGroupId,
+      final result =
+          await _repository
+              .revertPaymentGroup(
+        paymentGroupId:
+            paymentGroupId,
         reason: reason,
       );
 
-      _log('🟢 [revertGroup] result=$result');
+      _log(
+        '🟢 [revertGroup] '
+        'result=$result',
+      );
 
-      await loadEnrollmentDetail(enrollmentId);
+      await loadEnrollmentDetail(
+        enrollmentId,
+      );
 
       final amount = _toDouble(
-        result['totalReversed'] ?? result['total_reversed'],
+        result['totalReversed'] ??
+            result['total_reversed'],
       );
 
       final count = _toInt(
-        result['transactionCount'] ?? result['transaction_count'],
+        result['transactionCount'] ??
+            result['transaction_count'],
       );
 
       Get.snackbar(
         'Payment Group Reverted',
         '$count payment(s) reverted • '
             '₹${amount.toStringAsFixed(0)}',
-        snackPosition: SnackPosition.BOTTOM,
+        snackPosition:
+            SnackPosition.BOTTOM,
       );
 
       return true;
     } catch (e, st) {
-      _log('🔴 [revertGroup] ERROR: $e\n$st');
+      _log(
+        '🔴 [revertGroup] '
+        'ERROR: $e\n$st',
+      );
 
       _showError(e);
 
       return false;
     } finally {
-      isRevertingPaymentGroup.value = false;
+      isRevertingPaymentGroup.value =
+          false;
     }
   }
 
@@ -1328,45 +1707,70 @@ class DiwaliEnrollmentController extends GetxController {
     );
 
     if (fromWeekNumber <= 0) {
-      _showError(Exception('Enter a valid week number'));
+      _showError(
+        Exception(
+          'Enter a valid week number',
+        ),
+      );
 
       return false;
     }
 
     if (newChits <= 0) {
-      _showError(Exception('Enter a valid chit count'));
+      _showError(
+        Exception(
+          'Enter a valid chit count',
+        ),
+      );
 
       return false;
     }
 
-    isModifyingChits.value = true;
+    isModifyingChits.value =
+        true;
 
     try {
-      final result = await _repository.modifyChits(
+      final result =
+          await _repository.modifyChits(
         enrollmentId: enrollmentId,
-        fromWeekNumber: fromWeekNumber,
+        fromWeekNumber:
+            fromWeekNumber,
         newChits: newChits,
       );
 
-      _log('🟢 [modifyChits] result=$result');
+      _log(
+        '🟢 [modifyChits] '
+        'result=$result',
+      );
 
-      final updatedWeeks = result['weeks'] as List<DiwaliEnrollmentWeekModel>?;
+      final updatedWeeks =
+          result['weeks']
+              as List<
+                  DiwaliEnrollmentWeekModel>?;
 
       if (updatedWeeks != null) {
-        weeks.assignAll(updatedWeeks);
+        weeks.assignAll(
+          updatedWeeks,
+        );
       }
 
-      await loadEnrollmentDetail(enrollmentId);
+      await loadEnrollmentDetail(
+        enrollmentId,
+      );
 
       return true;
     } catch (e, st) {
-      _log('🔴 [modifyChits] ERROR: $e\n$st');
+      _log(
+        '🔴 [modifyChits] '
+        'ERROR: $e\n$st',
+      );
 
       _showError(e);
 
       return false;
     } finally {
-      isModifyingChits.value = false;
+      isModifyingChits.value =
+          false;
     }
   }
 
@@ -1374,26 +1778,42 @@ class DiwaliEnrollmentController extends GetxController {
   // ADJUSTMENT LOGS
   // ============================================================
 
-  Future<void> loadAdjustmentLogs(int enrollmentId) async {
+  Future<void> loadAdjustmentLogs(
+    int enrollmentId,
+  ) async {
     _log(
       '🔵 [adjustmentLogs] '
       'enrollmentId=$enrollmentId',
     );
 
-    isAdjustmentLogsLoading.value = true;
+    isAdjustmentLogsLoading.value =
+        true;
 
     try {
-      final result = await _repository.getAdjustmentLogs(enrollmentId);
+      final result =
+          await _repository
+              .getAdjustmentLogs(
+        enrollmentId,
+      );
 
-      _log('🟢 [adjustmentLogs] count=${result.length}');
+      _log(
+        '🟢 [adjustmentLogs] '
+        'count=${result.length}',
+      );
 
-      adjustmentLogs.assignAll(result);
+      adjustmentLogs.assignAll(
+        result,
+      );
     } catch (e, st) {
-      _log('🔴 [adjustmentLogs] ERROR: $e\n$st');
+      _log(
+        '🔴 [adjustmentLogs] '
+        'ERROR: $e\n$st',
+      );
 
       _showError(e);
     } finally {
-      isAdjustmentLogsLoading.value = false;
+      isAdjustmentLogsLoading.value =
+          false;
     }
   }
 
@@ -1401,16 +1821,28 @@ class DiwaliEnrollmentController extends GetxController {
   // ERROR
   // ============================================================
 
-  void _showError(Object error) {
-    _log('🔴 [_showError] $error');
+  void _showError(
+    Object error,
+  ) {
+    _log(
+      '🔴 [_showError] $error',
+    );
 
-    final message = error.toString().replaceFirst('Exception: ', '');
+    final message =
+        error
+            .toString()
+            .replaceFirst(
+              'Exception: ',
+              '',
+            );
 
     Get.snackbar(
       'Error',
       message,
-      snackPosition: SnackPosition.BOTTOM,
-      duration: const Duration(seconds: 3),
+      snackPosition:
+          SnackPosition.BOTTOM,
+      duration:
+          const Duration(seconds: 3),
     );
   }
 
@@ -1418,7 +1850,10 @@ class DiwaliEnrollmentController extends GetxController {
   // HELPERS
   // ============================================================
 
-  int _toInt(dynamic value, {int fallback = 0}) {
+  int _toInt(
+    dynamic value, {
+    int fallback = 0,
+  }) {
     if (value == null) {
       return fallback;
     }
@@ -1431,10 +1866,16 @@ class DiwaliEnrollmentController extends GetxController {
       return value.toInt();
     }
 
-    return int.tryParse(value.toString()) ?? fallback;
+    return int.tryParse(
+          value.toString(),
+        ) ??
+        fallback;
   }
 
-  double _toDouble(dynamic value, {double fallback = 0}) {
+  double _toDouble(
+    dynamic value, {
+    double fallback = 0,
+  }) {
     if (value == null) {
       return fallback;
     }
@@ -1447,6 +1888,9 @@ class DiwaliEnrollmentController extends GetxController {
       return value.toDouble();
     }
 
-    return double.tryParse(value.toString()) ?? fallback;
+    return double.tryParse(
+          value.toString(),
+        ) ??
+        fallback;
   }
 }

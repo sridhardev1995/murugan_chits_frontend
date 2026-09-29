@@ -1,9 +1,17 @@
 import 'package:get/get_navigation/src/routes/get_route.dart';
 import 'package:sri_murugan_chits/screens/auth/auth_binding.dart';
 import 'package:sri_murugan_chits/screens/auth/login_screen.dart';
+import 'package:sri_murugan_chits/screens/collections/collection_binding.dart';
+import 'package:sri_murugan_chits/screens/collections/collection_screen.dart';
 import 'package:sri_murugan_chits/screens/dashboard.dart/dashboard_binding.dart'
     show DashboardBinding;
 import 'package:sri_murugan_chits/screens/dashboard.dart/dashboard_view.dart';
+import 'package:sri_murugan_chits/screens/dues/dues_binding.dart';
+import 'package:sri_murugan_chits/screens/dues/dues_screen.dart';
+import 'package:sri_murugan_chits/screens/emi_collection/emi_collection_binding.dart';
+import 'package:sri_murugan_chits/screens/emi_collection/emi_collection_screen.dart';
+import 'package:sri_murugan_chits/screens/home/home_biding.dart';
+import 'package:sri_murugan_chits/screens/home/home_screen.dart';
 import 'package:sri_murugan_chits/screens/master/customer/customer_binding.dart';
 import 'package:sri_murugan_chits/screens/master/customer/customer_screen.dart';
 import 'package:sri_murugan_chits/screens/master/diwali_entrollment/diwali_enrollment_binding.dart';
@@ -17,9 +25,11 @@ import 'package:sri_murugan_chits/screens/master/emi_scheme/emi_scheme_binding.d
 import 'package:sri_murugan_chits/screens/master/emi_scheme/emi_scheme_screen.dart';
 import 'package:sri_murugan_chits/screens/report/emi_payment_report_binding.dart';
 import 'package:sri_murugan_chits/screens/report/emi_payment_report_screen.dart';
-import 'package:sri_murugan_chits/screens/settings/settings_binding.dart' hide EmiPaymentReportBinding;
+import 'package:sri_murugan_chits/screens/settings/settings_binding.dart'
+    hide EmiPaymentReportBinding;
 import 'package:sri_murugan_chits/screens/settings/settings_screen.dart';
 import 'package:sri_murugan_chits/screens/splash/splash_screen.dart';
+import 'package:sri_murugan_chits/screens/today_collection/today_collection_screen.dart';
 
 class AppRoutes {
   static final routes = [
@@ -30,6 +40,21 @@ class AppRoutes {
       binding: DashboardBinding(),
     ),
     GetPage(name: '/splash', page: () => const SplashScreen()),
+    GetPage(
+      name: '/home',
+      page: () => const HomeScreen(),
+      binding: HomeBiding(),
+    ),
+    GetPage(
+      name: '/diwali-collection',
+      page: () => const DiwaliCollecion(),
+      binding: CollectionBinding(), // 👈 add this
+    ),
+    GetPage(
+      name: '/emi-collection',
+      page: () => const EmiCollectionScreen(),
+      binding: EmiCollectionBinding(), // 👈 add this
+    ),
     GetPage(
       name: "/settings",
       page: () => const SettingsScreen(),
@@ -61,13 +86,22 @@ class AppRoutes {
       binding: EmiEnrollmentBinding(),
     ),
     GetPage(
-  name: '/emi-enrollments-list',
-  page: () => const EmiEnrollmentListScreen(),
-),
-GetPage(
-  name: '/emi-payment-report',
-  page: () => const EmiPaymentReportScreen(),
-  binding: EmiPaymentReportBinding(),   // 👈 add this
-),
+      name: '/emi-enrollments-list',
+      page: () => const EmiEnrollmentListScreen(),
+    ),
+    GetPage(
+      name: '/today-paid',
+      page: () => const TodayCollectionScreen(),
+    ),
+    GetPage(
+      name: '/emi-payment-report',
+      page: () => const EmiPaymentReportScreen(),
+      binding: EmiPaymentReportBinding(), // 👈 add this
+    ),
+    GetPage(
+      name: '/dues-customers',
+      page: () => const DuesScreen(),
+      binding: DuesBinding(), // 👈 add this
+    ),
   ];
 }

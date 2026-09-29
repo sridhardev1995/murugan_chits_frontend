@@ -3,7 +3,8 @@ class ApiConstants {
   // BASE
   // ============================================================
 
-  static const String baseUrl = "http://192.168.1.31:5000/api";
+  // static const String baseUrl = "http://192.168.1.31:5000/api";
+  static const String baseUrl = "http://10.65.42.75:5000/api";
 
   // ============================================================
   // AUTH
@@ -236,6 +237,16 @@ class ApiConstants {
   // ============================================================
 
   static const String emis = "/emis";
+
+  // ============================================================
+  // DASHBOARD
+  // ============================================================
+
+  static const String dashboardSummary = '/dashboard/summary';
+
+  static const String emiTodayDue = "/enrollments/collections/today-due";
+
+  static const String emiOverdue = "/enrollments/collections/overdue";
 
   // ============================================================
   // REPORTS

@@ -9,6 +9,18 @@ class SettingsController extends GetxController {
       "route": "/customer",
     },
     {
+      "title": "Dues",
+      "subtitle": "Manage Dues Customers",
+      "icon": "people",
+      "route": "/dues-customers",
+    },
+    {
+      "title": "Today Paid",
+      "subtitle": "Manage Paid Customers",
+      "icon": "people",
+      "route": "/today-paid",
+    },
+    {
       "title": "Diwali Scheme",
       "subtitle": "Manage Diwali schemes",
       "icon": "festival",

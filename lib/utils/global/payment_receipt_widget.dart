@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:math' as math;
 import 'dart:typed_data';
 import 'dart:ui' as ui;
 
@@ -9,16 +10,17 @@ import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 
 /// ================================================================
-/// PAYMENT RECEIPT WIDGET
+/// PAYMENT RECEIPT WIDGET — CLASSIC TICKET STYLE
 /// ----------------------------------------------------------------
-/// Ticket-style payment receipt card (matches the reference mockup):
-///   - Amber/gold header with a check icon + title
-///   - Receipt number highlight box
-///   - Customer / scheme / payment info rows
+///   - Cream paper background
+///   - Logo (assets/images/logo.png) at the top, centered
+///   - Monospace-style title + dashed dividers (classic receipt look)
+///   - Receipt number stamped in a bordered box
+///   - Label ........ Value rows with dotted leaders
 ///   - "Weeks Covered" chips (bulk payment only)
-///   - Black "Total Paid" highlight box
+///   - Bold "TOTAL PAID" ticket stub
 ///   - Remaining balance row
-///   - Thank-you footer
+///   - Torn/zigzag bottom edge like a real paper receipt
 ///   - "Share Receipt" button below the card that captures the card
 ///     as a PNG and opens the native share sheet (WhatsApp, etc.)
 /// ================================================================
@@ -34,8 +36,13 @@ class PaymentReceiptWidget extends StatefulWidget {
   final String? remainingBalance; // already formatted, e.g. "₹25,000.00"
   final List<String>? coveredWeeks;
 
-  /// Shown in the header subtitle. Defaults to the shop name.
+  /// Shown under the logo. Defaults to the shop name.
   final String companyName;
+
+  /// Path to the logo asset. Defaults to assets/images/logo.png
+  /// (remember to register this path under `flutter: assets:` in
+  /// pubspec.yaml).
+  final String logoAssetPath;
 
   const PaymentReceiptWidget({
     super.key,
@@ -50,6 +57,7 @@ class PaymentReceiptWidget extends StatefulWidget {
     this.remainingBalance,
     this.coveredWeeks,
     this.companyName = 'Sri Murugan Chits',
+    this.logoAssetPath = 'assets/images/logo.png',
   });
 
   @override
@@ -64,16 +72,18 @@ class _PaymentReceiptWidgetState extends State<PaymentReceiptWidget> {
   bool _isSharing = false;
 
   // ============================================================
-  // COLORS
+  // COLORS / STYLE
   // ============================================================
 
+  static const _paper = Color(0xFFFFFDF6); // warm receipt-paper white
   static const _gold = Color(0xFFF6C244);
-  static const _goldDark = Color(0xFFE7C75F);
-  static const _highlightBg = Color(0xFFFFF8E1);
+  static const _goldDark = Color(0xFFC99A2E);
   static const _black = Color(0xFF1A1A1A);
   static const _textDark = Color(0xFF1F2937);
-  static const _textGrey = Color(0xFF6B7280);
-  static const _footerBg = Color(0xFFF3F4F6);
+  static const _textGrey = Color(0xFF7C7C7C);
+  static const _dashGrey = Color(0xFFBFBFBF);
+
+  static const _mono = TextStyle(fontFamily: 'Courier', letterSpacing: 0.2);
 
   @override
   Widget build(BuildContext context) {
@@ -91,110 +101,122 @@ class _PaymentReceiptWidgetState extends State<PaymentReceiptWidget> {
   }
 
   // ============================================================
-  // RECEIPT CARD
+  // RECEIPT CARD (with torn zigzag bottom edge)
   // ============================================================
 
   Widget _buildReceiptCard() {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.15),
-            blurRadius: 16,
-            offset: const Offset(0, 6),
-          ),
-        ],
-      ),
-      clipBehavior: Clip.antiAlias,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          _buildHeader(),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(18, 18, 18, 0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildReceiptNumberBox(),
-                const SizedBox(height: 16),
-                _infoRow('Customer', widget.customerName),
-                _infoRow('Customer Code', widget.customerCode),
-                _infoRow('Scheme', widget.schemeName),
-                _infoRow('Installment / Week', widget.installmentLabel),
-                _infoRow('Payment Mode', widget.paymentMode),
-                _infoRow('Payment Date', widget.paymentDate),
-                if (widget.coveredWeeks != null &&
-                    widget.coveredWeeks!.isNotEmpty) ...[
-                  const SizedBox(height: 10),
-                  _buildWeeksCovered(),
-                ],
-                const SizedBox(height: 16),
-                _buildTotalPaidBox(),
-                const SizedBox(height: 12),
-                _buildRemainingBalanceRow(),
-              ],
+    return ClipPath(
+      clipper: _ReceiptEdgeClipper(),
+      child: Container(
+        decoration: BoxDecoration(
+          color: _paper,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.18),
+              blurRadius: 18,
+              offset: const Offset(0, 8),
             ),
-          ),
-          const SizedBox(height: 16),
-          _buildFooter(),
-        ],
+          ],
+        ),
+        padding: const EdgeInsets.fromLTRB(20, 22, 20, 26),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _buildLogoHeader(),
+            const SizedBox(height: 14),
+            _buildDashedDivider(),
+            const SizedBox(height: 16),
+            _buildReceiptNumberBox(),
+            const SizedBox(height: 16),
+            _dottedRow('CUSTOMER', widget.customerName),
+            _dottedRow('CUSTOMER CODE', widget.customerCode),
+            _dottedRow('SCHEME', widget.schemeName),
+            _dottedRow('INSTALLMENT / WEEK', widget.installmentLabel),
+            _dottedRow('PAYMENT MODE', widget.paymentMode),
+            _dottedRow('PAYMENT DATE', widget.paymentDate),
+            if (widget.coveredWeeks != null &&
+                widget.coveredWeeks!.isNotEmpty) ...[
+              const SizedBox(height: 6),
+              _buildDashedDivider(),
+              const SizedBox(height: 12),
+              _buildWeeksCovered(),
+            ],
+            const SizedBox(height: 16),
+            _buildDashedDivider(),
+            const SizedBox(height: 16),
+            _buildTotalPaidStub(),
+            const SizedBox(height: 12),
+            _buildRemainingBalanceRow(),
+            const SizedBox(height: 18),
+            _buildDashedDivider(),
+            const SizedBox(height: 14),
+            _buildFooter(),
+          ],
+        ),
       ),
     );
   }
 
   // ============================================================
-  // HEADER
+  // LOGO HEADER
   // ============================================================
 
-  Widget _buildHeader() {
-    return Container(
-      width: double.infinity,
-      color: _gold,
-      padding: const EdgeInsets.fromLTRB(18, 20, 18, 20),
-      child: Row(
-        children: [
-          Container(
-            width: 38,
-            height: 38,
-            decoration: const BoxDecoration(
-              color: _black,
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(
-              Icons.check,
-              color: _gold,
-              size: 22,
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'PAYMENT RECEIPT',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w800,
-                    color: _black,
-                    letterSpacing: 0.3,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  widget.companyName,
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w500,
-                    color: _black.withOpacity(0.75),
-                  ),
-                ),
-              ],
+  Widget _buildLogoHeader() {
+    return Column(
+      children: [
+        SizedBox(
+          height: 130,
+          child: Image.asset(
+            widget.logoAssetPath,
+            fit: BoxFit.contain,
+            // Falls back to a check-mark badge if the logo asset
+            // is missing so the receipt never breaks in dev/build.
+            errorBuilder: (context, error, stackTrace) => Container(
+              width: 120,
+              height: 56,
+              decoration: const BoxDecoration(
+                color: _black,
+                shape: BoxShape.circle,
+              ),
+              alignment: Alignment.center,
+              child: const Icon(Icons.check, color: _gold, size: 26),
             ),
           ),
-        ],
+        ),
+        // const SizedBox(height: 10),
+        // Text(
+        //   widget.companyName,
+        //   style: const TextStyle(
+        //     fontSize: 16,
+        //     fontWeight: FontWeight.w800,
+        //     color: _black,
+        //     letterSpacing: 0.4,
+        //   ),
+        // ),
+        // const SizedBox(height: 4),
+        const Text(
+          'PAYMENT RECEIPT',
+          style: TextStyle(
+            fontSize: 11.5,
+            fontWeight: FontWeight.w700,
+            color: _textGrey,
+            letterSpacing: 3,
+          ),
+        ),
+      ],
+    );
+  }
+
+  // ============================================================
+  // DASHED DIVIDER
+  // ============================================================
+
+  Widget _buildDashedDivider() {
+    return SizedBox(
+      height: 1,
+      child: CustomPaint(
+        painter: _DashedLinePainter(color: _dashGrey),
+        size: const Size(double.infinity, 1),
       ),
     );
   }
@@ -206,29 +228,28 @@ class _PaymentReceiptWidgetState extends State<PaymentReceiptWidget> {
   Widget _buildReceiptNumberBox() {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(vertical: 14),
+      padding: const EdgeInsets.symmetric(vertical: 12),
       decoration: BoxDecoration(
-        color: _highlightBg,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: _goldDark),
+        border: Border.all(color: _goldDark, width: 1.2),
+        borderRadius: BorderRadius.circular(4),
       ),
       child: Column(
         children: [
-          Text(
-            'RECEIPT NUMBER',
+          const Text(
+            'RECEIPT NO.',
             style: TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.w600,
-              letterSpacing: 1,
+              fontSize: 10.5,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 2,
               color: _textGrey,
             ),
           ),
           const SizedBox(height: 4),
           Text(
             widget.receiptNumber ?? '-',
-            style: const TextStyle(
+            style: _mono.copyWith(
               fontSize: 19,
-              fontWeight: FontWeight.w800,
+              fontWeight: FontWeight.w700,
               color: _black,
             ),
           ),
@@ -238,29 +259,41 @@ class _PaymentReceiptWidgetState extends State<PaymentReceiptWidget> {
   }
 
   // ============================================================
-  // INFO ROW
+  // LABEL ..... VALUE ROW (classic dotted leader)
   // ============================================================
 
-  Widget _infoRow(String label, String? value) {
+  Widget _dottedRow(String label, String? value) {
+    final display = (value == null || value.isEmpty) ? '-' : value;
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 5),
+      padding: const EdgeInsets.symmetric(vertical: 4.5),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           Text(
             label,
-            style: const TextStyle(
-              fontSize: 13.5,
+            style: _mono.copyWith(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
               color: _textGrey,
             ),
           ),
-          Flexible(
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.only(bottom: 2, left: 4, right: 4),
+              child: CustomPaint(
+                painter: _DottedLeaderPainter(color: _dashGrey),
+                size: const Size(double.infinity, 1),
+              ),
+            ),
+          ),
+          ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 160),
             child: Text(
-              (value == null || value.isEmpty) ? '-' : value,
+              display,
               textAlign: TextAlign.right,
-              style: const TextStyle(
-                fontSize: 13.5,
-                fontWeight: FontWeight.w600,
+              style: _mono.copyWith(
+                fontSize: 12.5,
+                fontWeight: FontWeight.w700,
                 color: _textDark,
               ),
             ),
@@ -280,10 +313,10 @@ class _PaymentReceiptWidgetState extends State<PaymentReceiptWidget> {
       children: [
         Text(
           'WEEKS COVERED',
-          style: TextStyle(
-            fontSize: 11,
-            fontWeight: FontWeight.w600,
-            letterSpacing: 1,
+          style: _mono.copyWith(
+            fontSize: 10.5,
+            fontWeight: FontWeight.w700,
+            letterSpacing: 2,
             color: _textGrey,
           ),
         ),
@@ -295,18 +328,18 @@ class _PaymentReceiptWidgetState extends State<PaymentReceiptWidget> {
               .map(
                 (week) => Container(
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 6,
+                    horizontal: 11,
+                    vertical: 5,
                   ),
                   decoration: BoxDecoration(
                     color: _gold,
-                    borderRadius: BorderRadius.circular(20),
+                    borderRadius: BorderRadius.circular(3),
                   ),
                   child: Text(
                     week,
-                    style: const TextStyle(
-                      fontSize: 12.5,
-                      fontWeight: FontWeight.w700,
+                    style: _mono.copyWith(
+                      fontSize: 11.5,
+                      fontWeight: FontWeight.w800,
                       color: _black,
                     ),
                   ),
@@ -319,33 +352,33 @@ class _PaymentReceiptWidgetState extends State<PaymentReceiptWidget> {
   }
 
   // ============================================================
-  // TOTAL PAID BOX
+  // TOTAL PAID STUB
   // ============================================================
 
-  Widget _buildTotalPaidBox() {
+  Widget _buildTotalPaidStub() {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(vertical: 16),
       decoration: BoxDecoration(
         color: _black,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(4),
       ),
       child: Column(
         children: [
-          const Text(
+          Text(
             'TOTAL PAID',
-            style: TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.w600,
-              letterSpacing: 1,
+            style: _mono.copyWith(
+              fontSize: 10.5,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 2,
               color: Colors.white70,
             ),
           ),
           const SizedBox(height: 4),
           Text(
             widget.paidAmount ?? '₹0.00',
-            style: const TextStyle(
-              fontSize: 24,
+            style: _mono.copyWith(
+              fontSize: 25,
               fontWeight: FontWeight.w800,
               color: _gold,
             ),
@@ -360,34 +393,27 @@ class _PaymentReceiptWidgetState extends State<PaymentReceiptWidget> {
   // ============================================================
 
   Widget _buildRemainingBalanceRow() {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-      decoration: BoxDecoration(
-        color: _footerBg,
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          const Text(
-            'Remaining Balance',
-            style: TextStyle(
-              fontSize: 13.5,
-              fontWeight: FontWeight.w600,
-              color: _textDark,
-            ),
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          'REMAINING BALANCE',
+          style: _mono.copyWith(
+            fontSize: 11.5,
+            fontWeight: FontWeight.w700,
+            color: _textGrey,
+            letterSpacing: 1,
           ),
-          Text(
-            widget.remainingBalance ?? '₹0.00',
-            style: const TextStyle(
-              fontSize: 15,
-              fontWeight: FontWeight.w800,
-              color: _textDark,
-            ),
+        ),
+        Text(
+          widget.remainingBalance ?? '₹0.00',
+          style: _mono.copyWith(
+            fontSize: 14.5,
+            fontWeight: FontWeight.w800,
+            color: _textDark,
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
@@ -396,19 +422,30 @@ class _PaymentReceiptWidgetState extends State<PaymentReceiptWidget> {
   // ============================================================
 
   Widget _buildFooter() {
-    return Container(
-      width: double.infinity,
-      color: _footerBg,
-      padding: const EdgeInsets.symmetric(vertical: 14),
-      child: Text(
-        'Thank you for your payment',
-        textAlign: TextAlign.center,
-        style: TextStyle(
-          fontSize: 13,
-          color: _textGrey,
-          fontWeight: FontWeight.w500,
+    return Column(
+      children: [
+        Text(
+          'THANK YOU FOR YOUR PAYMENT',
+          textAlign: TextAlign.center,
+          style: _mono.copyWith(
+            fontSize: 11.5,
+            letterSpacing: 1.5,
+            color: _textGrey,
+            fontWeight: FontWeight.w700,
+          ),
         ),
-      ),
+        const SizedBox(height: 6),
+        Text(
+          'This is a digitally generated receipt',
+          textAlign: TextAlign.center,
+          style: _mono.copyWith(
+            fontSize: 9.5,
+            letterSpacing: 0.4,
+            color: _textGrey.withOpacity(0.75),
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+      ],
     );
   }
 
@@ -512,4 +549,90 @@ class _PaymentReceiptWidgetState extends State<PaymentReceiptWidget> {
       }
     }
   }
+}
+
+/// ================================================================
+/// PAINTERS / CLIPPERS FOR THE CLASSIC PAPER-RECEIPT LOOK
+/// ================================================================
+
+/// Horizontal dashed divider line.
+class _DashedLinePainter extends CustomPainter {
+  final Color color;
+  const _DashedLinePainter({required this.color});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..strokeWidth = 1;
+    const dashWidth = 5.0;
+    const dashSpace = 4.0;
+    double x = 0;
+    while (x < size.width) {
+      canvas.drawLine(Offset(x, 0), Offset(x + dashWidth, 0), paint);
+      x += dashWidth + dashSpace;
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
+
+/// Fine dotted leader used between a label and its value
+/// (e.g. "CUSTOMER ..................... Ramesh Kumar").
+class _DottedLeaderPainter extends CustomPainter {
+  final Color color;
+  const _DottedLeaderPainter({required this.color});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..strokeWidth = 1.4
+      ..strokeCap = StrokeCap.round;
+    const dotSpace = 4.0;
+    double x = 0;
+    while (x < size.width) {
+      canvas.drawCircle(Offset(x, size.height / 2), 0.6, paint);
+      x += dotSpace;
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
+
+/// Clips the bottom edge of the receipt into a torn zigzag,
+/// like a real paper ticket. Top/side edges stay straight.
+class _ReceiptEdgeClipper extends CustomClipper<Path> {
+  static const double _zigzagHeight = 9;
+  static const double _zigzagWidth = 16;
+
+  @override
+  Path getClip(Size size) {
+    final path = Path();
+    path.lineTo(0, 0);
+    path.lineTo(size.width, 0);
+    path.lineTo(size.width, size.height - _zigzagHeight);
+
+    // Zigzag along the bottom, right to left.
+    double x = size.width;
+    bool up = true;
+    while (x > 0) {
+      final nextX = math.max(0.0, x - _zigzagWidth);
+      final y = up
+          ? size.height
+          : size.height - _zigzagHeight;
+      path.lineTo(nextX, y);
+      up = !up;
+      x = nextX;
+    }
+
+    path.lineTo(0, size.height - _zigzagHeight);
+    path.close();
+    return path;
+  }
+
+  @override
+  bool shouldReclip(covariant CustomClipper<Path> oldClipper) => false;
 }
