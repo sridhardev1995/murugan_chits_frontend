@@ -7,9 +7,6 @@ class AppGradients {
   static const LinearGradient primaryGradient = LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
-    colors: [
-      AppColors.primary,
-      Color.fromARGB(255, 255, 193, 7),
-    ],
+    colors: [AppColors.primary, AppColors.primary],
   );
 }

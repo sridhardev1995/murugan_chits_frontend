@@ -3,8 +3,8 @@ class ApiConstants {
   // BASE
   // ============================================================
 
-  // static const String baseUrl = "http://192.168.1.31:5000/api";
-  static const String baseUrl = "http://10.65.42.75:5000/api";
+  // static const String baseUrl = "https://habifix.in/api";
+  static const String baseUrl = "http://192.168.1.27:5000/api";
 
   // ============================================================
   // AUTH
@@ -13,6 +13,7 @@ class ApiConstants {
   static const String login = "/auth/login";
 
   static const String changePassword = "/auth/change-password";
+  static const String resetPassword = "/auth/reset-password";
 
   static const String profile = "/auth/profile";
 
@@ -249,10 +250,24 @@ class ApiConstants {
   static const String emiOverdue = "/enrollments/collections/overdue";
 
   // ============================================================
+  // TODAY COLLECTION
+  // ============================================================
+
+  static const String todayCollections = "/collections/today";
+
+  static const String todayCollectionSummary = "/collections/today-summary";
+
+  // ============================================================
   // REPORTS
   // ============================================================
 
   static const String emiPaymentReport = '/reports/emi-payments';
+
+  // ============================================================
+  // EMI PROFIT REPORT
+  // ============================================================
+
+  static const String emiProfitReport = "/reports/emi-profit";
 
   // ============================================================
   // HEALTH

@@ -143,7 +143,7 @@ class _CustomerFormState extends State<_CustomerForm> {
               _phone,
               'Phone Number *',
               keyboardType: TextInputType.phone,
-              maxLength: 10,
+              maxLength: 12,
               inputFormatters: [FilteringTextInputFormatter.digitsOnly],
               validator: (v) {
                 if (v == null || v.trim().isEmpty) {

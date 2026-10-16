@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:hive/hive.dart';
 
 class StorageService {
@@ -39,6 +40,11 @@ class StorageService {
     if (username != null && username.isNotEmpty) {
       await box.put(usernameKey, username);
     }
+
+    debugPrint(
+      "SESSION SAVED - TOKEN EXISTS: "
+      "${token.isNotEmpty}",
+    );
   }
 
   // ============================================================
@@ -49,6 +55,10 @@ class StorageService {
     final box = await _getBox();
 
     await box.put(tokenKey, token);
+
+    debugPrint(
+      "TOKEN SAVED - LENGTH: ${token.length}",
+    );
   }
 
   // ============================================================
@@ -58,13 +68,19 @@ class StorageService {
   static Future<String?> getToken() async {
     final box = await _getBox();
 
-    final token = box.get(tokenKey);
+    final value = box.get(tokenKey);
 
-    if (token == null) {
+    if (value == null) {
       return null;
     }
 
-    return token.toString();
+    final token = value.toString();
+
+    if (token.isEmpty) {
+      return null;
+    }
+
+    return token;
   }
 
   // ============================================================
@@ -84,7 +100,9 @@ class StorageService {
       return value;
     }
 
-    return int.tryParse(value.toString());
+    return int.tryParse(
+      value.toString(),
+    );
   }
 
   // ============================================================
@@ -116,6 +134,36 @@ class StorageService {
   static Future<void> logout() async {
     final box = await _getBox();
 
-    await box.clear();
+    await box.delete(tokenKey);
+    await box.delete(adminIdKey);
+    await box.delete(usernameKey);
+
+    // Make sure Hive finishes writing.
+    await box.flush();
+
+    final remainingToken = box.get(tokenKey);
+
+    debugPrint(
+      "================================",
+    );
+
+    debugPrint(
+      "STORAGE LOGOUT",
+    );
+
+    debugPrint(
+      "TOKEN AFTER LOGOUT: $remainingToken",
+    );
+
+    debugPrint(
+      "IS LOGGED IN AFTER LOGOUT: "
+      "${remainingToken != null && remainingToken.toString().isNotEmpty}",
+    );
+
+    debugPrint(
+      "================================",
+    );
   }
+
+  
 }

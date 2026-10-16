@@ -11,10 +11,7 @@ import 'diwali_enrollment_controller.dart';
 class DiwaliEnrollmentDetailView extends GetView<DiwaliEnrollmentController> {
   final int enrollmentId;
 
-  const DiwaliEnrollmentDetailView({
-    super.key,
-    required this.enrollmentId,
-  });
+  const DiwaliEnrollmentDetailView({super.key, required this.enrollmentId});
 
   @override
   Widget build(BuildContext context) {
@@ -32,10 +29,7 @@ class DiwaliEnrollmentDetailView extends GetView<DiwaliEnrollmentController> {
     return Scaffold(
       backgroundColor: const Color(0xFFF6F7FB),
       appBar: AppBar(
-        title: Text(
-          'Enrollment Details',
-          style: AppTextStyle.heading,
-        ),
+        title: Text('Enrollment Details', style: AppTextStyle.heading),
         backgroundColor: const Color(0xFFF6F7FB),
         elevation: 0,
         foregroundColor: const Color(0xFF1F2937),
@@ -64,9 +58,7 @@ class DiwaliEnrollmentDetailView extends GetView<DiwaliEnrollmentController> {
           }),
           IconButton(
             tooltip: 'Bulk Payment',
-            icon: const Icon(
-              Icons.account_balance_wallet_outlined,
-            ),
+            icon: const Icon(Icons.account_balance_wallet_outlined),
             onPressed: () {
               _showBulkPayDialog(context, enrollmentId);
             },
@@ -77,9 +69,7 @@ class DiwaliEnrollmentDetailView extends GetView<DiwaliEnrollmentController> {
         child: Obx(() {
           if (controller.isDetailLoading.value &&
               controller.currentEnrollment.value == null) {
-            return const Center(
-              child: CircularProgressIndicator(),
-            );
+            return const Center(child: CircularProgressIndicator());
           }
 
           final enrollment = controller.currentEnrollment.value;
@@ -111,11 +101,7 @@ class DiwaliEnrollmentDetailView extends GetView<DiwaliEnrollmentController> {
                   _buildNoData('No weekly schedule found')
                 else
                   ...controller.weeks.map(
-                    (week) => _buildWeekTile(
-                      context,
-                      enrollment,
-                      week,
-                    ),
+                    (week) => _buildWeekTile(context, enrollment, week),
                   ),
                 const SizedBox(height: 20),
                 _buildAdjustmentSection(context),
@@ -164,10 +150,7 @@ class DiwaliEnrollmentDetailView extends GetView<DiwaliEnrollmentController> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  e.customerName,
-                  style: AppTextStyle.semiBoldLarge,
-                ),
+                Text(e.customerName, style: AppTextStyle.semiBoldLarge),
                 const SizedBox(height: 3),
                 Text(
                   e.customerPhone,
@@ -212,23 +195,11 @@ class DiwaliEnrollmentDetailView extends GetView<DiwaliEnrollmentController> {
       ),
       child: Column(
         children: [
-          _summaryRow(
-            'Total Paid',
-            s.totalPaid,
-            Colors.green.shade700,
-          ),
+          _summaryRow('Total Paid', s.totalPaid, Colors.green.shade700),
           const Divider(height: 20),
-          _summaryRow(
-            'Total Due',
-            s.totalDue,
-            const Color(0xFF1F2937),
-          ),
+          _summaryRow('Total Due', s.totalDue, const Color(0xFF1F2937)),
           const Divider(height: 20),
-          _summaryRow(
-            'Balance',
-            s.balance,
-            Colors.red.shade600,
-          ),
+          _summaryRow('Balance', s.balance, Colors.red.shade600),
           const Divider(height: 20),
           _summaryRow(
             'Weeks Remaining',
@@ -258,17 +229,11 @@ class DiwaliEnrollmentDetailView extends GetView<DiwaliEnrollmentController> {
       children: [
         Text(
           label,
-          style: AppTextStyle.regular.copyWith(
-            color: Colors.grey.shade600,
-          ),
+          style: AppTextStyle.regular.copyWith(color: Colors.grey.shade600),
         ),
         Text(
-          isCount
-              ? value.toStringAsFixed(0)
-              : '₹${value.toStringAsFixed(0)}',
-          style: AppTextStyle.semiBoldLarge.copyWith(
-            color: color,
-          ),
+          isCount ? value.toStringAsFixed(0) : '₹${value.toStringAsFixed(0)}',
+          style: AppTextStyle.semiBoldLarge.copyWith(color: color),
         ),
       ],
     );
@@ -304,9 +269,7 @@ class DiwaliEnrollmentDetailView extends GetView<DiwaliEnrollmentController> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(
-          color: Colors.grey.shade200,
-        ),
+        border: Border.all(color: Colors.grey.shade200),
       ),
       child: Row(
         children: [
@@ -320,9 +283,7 @@ class DiwaliEnrollmentDetailView extends GetView<DiwaliEnrollmentController> {
             ),
             child: Text(
               'W${week.weekNumber}',
-              style: AppTextStyle.semiBoldSmall.copyWith(
-                color: statusColor,
-              ),
+              style: AppTextStyle.semiBoldSmall.copyWith(color: statusColor),
             ),
           ),
           const SizedBox(width: 12),
@@ -341,19 +302,14 @@ class DiwaliEnrollmentDetailView extends GetView<DiwaliEnrollmentController> {
             ),
           ),
           Container(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 8,
-              vertical: 4,
-            ),
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
             decoration: BoxDecoration(
               color: statusColor.withOpacity(0.1),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Text(
               week.status,
-              style: AppTextStyle.semiBoldSmall.copyWith(
-                color: statusColor,
-              ),
+              style: AppTextStyle.semiBoldSmall.copyWith(color: statusColor),
             ),
           ),
           if (week.status != 'Paid') ...[
@@ -365,11 +321,7 @@ class DiwaliEnrollmentDetailView extends GetView<DiwaliEnrollmentController> {
                 color: Color(0xFF2563EB),
               ),
               onPressed: () {
-                _showPayDialog(
-                  context,
-                  enrollment,
-                  week,
-                );
+                _showPayDialog(context, enrollment, week);
               },
             ),
           ],
@@ -382,27 +334,22 @@ class DiwaliEnrollmentDetailView extends GetView<DiwaliEnrollmentController> {
   // DUE / PAID STATUS
   // ============================================================
 
-  Widget _dueStatusLine(
-    DiwaliEnrollmentWeekModel week,
-  ) {
+  Widget _dueStatusLine(DiwaliEnrollmentWeekModel week) {
     DateTime? dueDate;
 
     try {
-      dueDate = week.dueDate.isNotEmpty
-          ? DateTime.parse(week.dueDate)
-          : null;
+      dueDate = week.dueDate.isNotEmpty ? DateTime.parse(week.dueDate) : null;
     } catch (_) {}
 
-    if (week.paymentDate != null &&
-        week.paymentDate!.isNotEmpty) {
+    if (week.paymentDate != null && week.paymentDate!.isNotEmpty) {
       DateTime? paidDate;
 
       try {
         paidDate = DateTime.parse(week.paymentDate!);
       } catch (_) {}
 
-      final modeSuffix = week.paymentMode != null &&
-              week.paymentMode!.isNotEmpty
+      final modeSuffix =
+          week.paymentMode != null && week.paymentMode!.isNotEmpty
           ? ' · ${week.paymentMode}'
           : '';
 
@@ -411,13 +358,7 @@ class DiwaliEnrollmentDetailView extends GetView<DiwaliEnrollmentController> {
           paidDate.year,
           paidDate.month,
           paidDate.day,
-        ).difference(
-          DateTime(
-            dueDate.year,
-            dueDate.month,
-            dueDate.day,
-          ),
-        ).inDays;
+        ).difference(DateTime(dueDate.year, dueDate.month, dueDate.day)).inDays;
 
         if (diff <= 0) {
           return _statusLine(
@@ -457,13 +398,7 @@ class DiwaliEnrollmentDetailView extends GetView<DiwaliEnrollmentController> {
         today.year,
         today.month,
         today.day,
-      ).difference(
-        DateTime(
-          dueDate.year,
-          dueDate.month,
-          dueDate.day,
-        ),
-      ).inDays;
+      ).difference(DateTime(dueDate.year, dueDate.month, dueDate.day)).inDays;
 
       if (diff > 0) {
         return _statusLine(
@@ -495,9 +430,7 @@ class DiwaliEnrollmentDetailView extends GetView<DiwaliEnrollmentController> {
     }
 
     try {
-      return DateFormat(
-        'dd MMM yy',
-      ).format(DateTime.parse(value));
+      return DateFormat('dd MMM yy').format(DateTime.parse(value));
     } catch (_) {
       return value;
     }
@@ -510,11 +443,7 @@ class DiwaliEnrollmentDetailView extends GetView<DiwaliEnrollmentController> {
   }) {
     return Row(
       children: [
-        Icon(
-          icon,
-          size: 13,
-          color: color,
-        ),
+        Icon(icon, size: 13, color: color),
         const SizedBox(width: 4),
         Expanded(
           child: Text(
@@ -548,22 +477,13 @@ class DiwaliEnrollmentDetailView extends GetView<DiwaliEnrollmentController> {
       context: context,
       builder: (dialogContext) {
         return StatefulBuilder(
-          builder: (
-            dialogContext,
-            setState,
-          ) {
+          builder: (dialogContext, setState) {
             double cash() {
-              return double.tryParse(
-                    cashController.text.trim(),
-                  ) ??
-                  0;
+              return double.tryParse(cashController.text.trim()) ?? 0;
             }
 
             double upi() {
-              return double.tryParse(
-                    upiController.text.trim(),
-                  ) ??
-                  0;
+              return double.tryParse(upiController.text.trim()) ?? 0;
             }
 
             double total() {
@@ -581,8 +501,7 @@ class DiwaliEnrollmentDetailView extends GetView<DiwaliEnrollmentController> {
               content: SingleChildScrollView(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment:
-                      CrossAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       'Outstanding: '
@@ -636,8 +555,7 @@ class DiwaliEnrollmentDetailView extends GetView<DiwaliEnrollmentController> {
                   child: const Text('Cancel'),
                 ),
                 Obx(() {
-                  final paying =
-                      controller.isPaying.value;
+                  final paying = controller.isPaying.value;
 
                   return ElevatedButton(
                     onPressed: paying
@@ -647,14 +565,12 @@ class DiwaliEnrollmentDetailView extends GetView<DiwaliEnrollmentController> {
 
                             if (amount <= 0) {
                               setState(() {
-                                errorText =
-                                    'Enter at least one amount';
+                                errorText = 'Enter at least one amount';
                               });
                               return;
                             }
 
-                            if (amount >
-                                week.outstanding) {
+                            if (amount > week.outstanding) {
                               setState(() {
                                 errorText =
                                     'Total exceeds outstanding '
@@ -663,18 +579,10 @@ class DiwaliEnrollmentDetailView extends GetView<DiwaliEnrollmentController> {
                               return;
                             }
 
-                            final payments =
-                                <Map<String, dynamic>>[
+                            final payments = <Map<String, dynamic>>[
                               if (cash() > 0)
-                                {
-                                  'amount': cash(),
-                                  'mode': 'Cash',
-                                },
-                              if (upi() > 0)
-                                {
-                                  'amount': upi(),
-                                  'mode': 'UPI',
-                                },
+                                {'amount': cash(), 'mode': 'Cash'},
+                              if (upi() > 0) {'amount': upi(), 'mode': 'UPI'},
                             ];
 
                             // NOTE: we intentionally do NOT call
@@ -690,31 +598,24 @@ class DiwaliEnrollmentDetailView extends GetView<DiwaliEnrollmentController> {
                             // specifically), which is exactly the
                             // "receipt flashes and disappears" bug.
                             await controller.payWeek(
-                              enrollmentId:
-                                  enrollment.id,
-                              weekNumber:
-                                  week.weekNumber,
+                              enrollmentId: enrollment.id,
+                              weekNumber: week.weekNumber,
                               payments: payments,
                             );
                           },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor:
-                          const Color(0xFF2563EB),
+                      backgroundColor: const Color(0xFF2563EB),
                     ),
                     child: paying
                         ? const SizedBox(
                             height: 18,
                             width: 18,
-                            child:
-                                CircularProgressIndicator(
+                            child: CircularProgressIndicator(
                               color: Colors.white,
                               strokeWidth: 2,
                             ),
                           )
-                        : Text(
-                            'Confirm',
-                            style: AppTextStyle.button,
-                          ),
+                        : Text('Confirm', style: AppTextStyle.button),
                   );
                 }),
               ],
@@ -733,14 +634,9 @@ class DiwaliEnrollmentDetailView extends GetView<DiwaliEnrollmentController> {
   }) {
     return TextField(
       controller: controller,
-      keyboardType:
-          const TextInputType.numberWithOptions(
-        decimal: true,
-      ),
+      keyboardType: const TextInputType.numberWithOptions(decimal: true),
       inputFormatters: [
-        FilteringTextInputFormatter.allow(
-          RegExp(r'^\d*\.?\d*$'),
-        ),
+        FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*$')),
       ],
       onChanged: onChanged,
       decoration: InputDecoration(
@@ -773,10 +669,7 @@ class DiwaliEnrollmentDetailView extends GetView<DiwaliEnrollmentController> {
       context: context,
       builder: (dialogContext) {
         return StatefulBuilder(
-          builder: (
-            dialogContext,
-            setState,
-          ) {
+          builder: (dialogContext, setState) {
             return AlertDialog(
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
@@ -797,8 +690,7 @@ class DiwaliEnrollmentDetailView extends GetView<DiwaliEnrollmentController> {
                     const SizedBox(height: 14),
                     TextField(
                       controller: amountController,
-                      keyboardType:
-                          const TextInputType.numberWithOptions(
+                      keyboardType: const TextInputType.numberWithOptions(
                         decimal: true,
                       ),
                       decoration: const InputDecoration(
@@ -814,24 +706,24 @@ class DiwaliEnrollmentDetailView extends GetView<DiwaliEnrollmentController> {
                         labelText: 'Payment Mode',
                         border: OutlineInputBorder(),
                       ),
-                      items: const [
-                        'Cash',
-                        'UPI',
-                        'Bank Transfer',
-                        'Cheque',
-                        'Other',
-                      ]
-                          .map(
-                            (mode) => DropdownMenuItem(
-                              value: mode,
-                              child: Text(mode),
-                            ),
-                          )
-                          .toList(),
+                      items:
+                          const [
+                                'Cash',
+                                'UPI',
+                                'Bank Transfer',
+                                'Cheque',
+                                'Other',
+                              ]
+                              .map(
+                                (mode) => DropdownMenuItem(
+                                  value: mode,
+                                  child: Text(mode),
+                                ),
+                              )
+                              .toList(),
                       onChanged: (value) {
                         setState(() {
-                          selectedMode =
-                              value ?? 'Cash';
+                          selectedMode = value ?? 'Cash';
                         });
                       },
                     ),
@@ -846,26 +738,21 @@ class DiwaliEnrollmentDetailView extends GetView<DiwaliEnrollmentController> {
                   child: const Text('Cancel'),
                 ),
                 Obx(() {
-                  final loading =
-                      controller.isBulkPaying.value;
+                  final loading = controller.isBulkPaying.value;
 
                   return ElevatedButton(
                     onPressed: loading
                         ? null
                         : () async {
-                            final amount =
-                                double.tryParse(
-                              amountController.text
-                                  .trim(),
+                            final amount = double.tryParse(
+                              amountController.text.trim(),
                             );
 
-                            if (amount == null ||
-                                amount <= 0) {
+                            if (amount == null || amount <= 0) {
                               Get.snackbar(
                                 'Invalid amount',
                                 'Enter a valid amount',
-                                snackPosition:
-                                    SnackPosition.BOTTOM,
+                                snackPosition: SnackPosition.BOTTOM,
                               );
                               return;
                             }
@@ -876,25 +763,20 @@ class DiwaliEnrollmentDetailView extends GetView<DiwaliEnrollmentController> {
                             // it itself right before showing the
                             // receipt dialog, so a manual pop here
                             // would instead close the receipt.
-                            await controller
-                                .bulkPayEnrollment(
-                              enrollmentId:
-                                  enrollmentId,
+                            await controller.bulkPayEnrollment(
+                              enrollmentId: enrollmentId,
                               totalAmount: amount,
-                              paymentMode:
-                                  selectedMode,
+                              paymentMode: selectedMode,
                             );
                           },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor:
-                          const Color(0xFF2563EB),
+                      backgroundColor: const Color(0xFF2563EB),
                     ),
                     child: loading
                         ? const SizedBox(
                             height: 18,
                             width: 18,
-                            child:
-                                CircularProgressIndicator(
+                            child: CircularProgressIndicator(
                               color: Colors.white,
                               strokeWidth: 2,
                             ),
@@ -924,9 +806,7 @@ class DiwaliEnrollmentDetailView extends GetView<DiwaliEnrollmentController> {
       isScrollControlled: true,
       backgroundColor: const Color(0xFFF6F7FB),
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(
-          top: Radius.circular(20),
-        ),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (_) {
         return DraggableScrollableSheet(
@@ -934,10 +814,7 @@ class DiwaliEnrollmentDetailView extends GetView<DiwaliEnrollmentController> {
           minChildSize: 0.45,
           maxChildSize: 0.95,
           expand: false,
-          builder: (
-            context,
-            scrollController,
-          ) {
+          builder: (context, scrollController) {
             return Column(
               children: [
                 const SizedBox(height: 12),
@@ -946,49 +823,30 @@ class DiwaliEnrollmentDetailView extends GetView<DiwaliEnrollmentController> {
                   height: 4,
                   decoration: BoxDecoration(
                     color: Colors.grey.shade400,
-                    borderRadius:
-                        BorderRadius.circular(10),
+                    borderRadius: BorderRadius.circular(10),
                   ),
                 ),
                 const SizedBox(height: 12),
-                Text(
-                  'Payment History',
-                  style: AppTextStyle.semiBoldLarge,
-                ),
+                Text('Payment History', style: AppTextStyle.semiBoldLarge),
                 const SizedBox(height: 10),
                 Expanded(
                   child: Obx(() {
-                    if (controller
-                        .isPaymentHistoryLoading.value) {
-                      return const Center(
-                        child:
-                            CircularProgressIndicator(),
-                      );
+                    if (controller.isPaymentHistoryLoading.value) {
+                      return const Center(child: CircularProgressIndicator());
                     }
 
                     if (controller.paymentHistory.isEmpty) {
-                      return _buildNoData(
-                        'No payment history',
-                      );
+                      return _buildNoData('No payment history');
                     }
 
                     return ListView.builder(
                       controller: scrollController,
                       padding: const EdgeInsets.all(16),
-                      itemCount:
-                          controller.paymentHistory.length,
-                      itemBuilder: (
-                        context,
-                        index,
-                      ) {
-                        final payment =
-                            controller.paymentHistory[
-                                index];
+                      itemCount: controller.paymentHistory.length,
+                      itemBuilder: (context, index) {
+                        final payment = controller.paymentHistory[index];
 
-                        return _paymentHistoryCard(
-                          context,
-                          payment,
-                        );
+                        return _paymentHistoryCard(context, payment);
                       },
                     );
                   }),
@@ -1009,60 +867,43 @@ class DiwaliEnrollmentDetailView extends GetView<DiwaliEnrollmentController> {
     BuildContext context,
     Map<String, dynamic> payment,
   ) {
-    final status =
-        payment['status']?.toString() ?? 'Active';
+    final status = payment['status']?.toString() ?? 'Active';
 
-    final amount = _toDouble(
-      payment['amount'],
-    );
+    final amount = _toDouble(payment['amount']);
 
-    final weekNumber =
-        payment['week_number']?.toString() ?? '-';
+    final weekNumber = payment['week_number']?.toString() ?? '-';
 
-    final mode =
-        payment['payment_mode']?.toString() ?? '-';
+    final mode = payment['payment_mode']?.toString() ?? '-';
 
-    final paymentDate =
-        payment['payment_date']?.toString() ?? '-';
+    final paymentDate = payment['payment_date']?.toString() ?? '-';
 
-    final groupId =
-        payment['payment_group_id']?.toString();
+    final groupId = payment['payment_group_id']?.toString();
 
-    final receiptNumber =
-        payment['receipt_number']?.toString();
+    final receiptNumber = payment['receipt_number']?.toString();
 
-    final transactionId =
-        _toInt(payment['id']);
+    final transactionId = _toInt(payment['id']);
 
-    final reversedBy =
-        payment['reversed_by_username']?.toString();
+    final reversedBy = payment['reversed_by_username']?.toString();
 
     return Card(
       margin: const EdgeInsets.only(bottom: 10),
       elevation: 0,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(14),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
       child: Padding(
         padding: const EdgeInsets.all(14),
         child: Column(
-          crossAxisAlignment:
-              CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               children: [
                 CircleAvatar(
                   radius: 20,
-                  backgroundColor:
-                      status == 'Active'
-                          ? Colors.green
-                              .withOpacity(0.1)
-                          : Colors.red
-                              .withOpacity(0.1),
+                  backgroundColor: status == 'Active'
+                      ? Colors.green.withOpacity(0.1)
+                      : Colors.red.withOpacity(0.1),
                   child: Icon(
                     status == 'Active'
-                        ? Icons
-                            .check_circle_outline
+                        ? Icons.check_circle_outline
                         : Icons.undo,
                     color: status == 'Active'
                         ? Colors.green.shade700
@@ -1072,21 +913,13 @@ class DiwaliEnrollmentDetailView extends GetView<DiwaliEnrollmentController> {
                 const SizedBox(width: 10),
                 Expanded(
                   child: Column(
-                    crossAxisAlignment:
-                        CrossAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        'Week $weekNumber',
-                        style:
-                            AppTextStyle.semiBold,
-                      ),
+                      Text('Week $weekNumber', style: AppTextStyle.semiBold),
                       Text(
                         '$mode · $paymentDate',
-                        style: AppTextStyle
-                            .regularSmall
-                            .copyWith(
-                          color:
-                              Colors.grey.shade600,
+                        style: AppTextStyle.regularSmall.copyWith(
+                          color: Colors.grey.shade600,
                         ),
                       ),
                     ],
@@ -1094,9 +927,7 @@ class DiwaliEnrollmentDetailView extends GetView<DiwaliEnrollmentController> {
                 ),
                 Text(
                   '₹${amount.toStringAsFixed(0)}',
-                  style: AppTextStyle
-                      .semiBoldLarge
-                      .copyWith(
+                  style: AppTextStyle.semiBoldLarge.copyWith(
                     color: status == 'Active'
                         ? Colors.green.shade700
                         : Colors.red.shade700,
@@ -1108,9 +939,7 @@ class DiwaliEnrollmentDetailView extends GetView<DiwaliEnrollmentController> {
             // ==================================================
             // RECEIPT NUMBER
             // ==================================================
-
-            if (receiptNumber != null &&
-                receiptNumber.isNotEmpty) ...[
+            if (receiptNumber != null && receiptNumber.isNotEmpty) ...[
               const SizedBox(height: 10),
               Container(
                 width: double.infinity,
@@ -1120,11 +949,8 @@ class DiwaliEnrollmentDetailView extends GetView<DiwaliEnrollmentController> {
                 ),
                 decoration: BoxDecoration(
                   color: const Color(0xFFFFF8E1),
-                  borderRadius:
-                      BorderRadius.circular(10),
-                  border: Border.all(
-                    color: const Color(0xFFE7C75F),
-                  ),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: const Color(0xFFE7C75F)),
                 ),
                 child: Row(
                   children: [
@@ -1136,24 +962,16 @@ class DiwaliEnrollmentDetailView extends GetView<DiwaliEnrollmentController> {
                     const SizedBox(width: 8),
                     Text(
                       'Receipt',
-                      style: AppTextStyle
-                          .regularSmall
-                          .copyWith(
-                        color:
-                            Colors.grey.shade700,
+                      style: AppTextStyle.regularSmall.copyWith(
+                        color: Colors.grey.shade700,
                       ),
                     ),
                     const SizedBox(width: 6),
                     Expanded(
                       child: Text(
                         receiptNumber,
-                        style: AppTextStyle
-                            .semiBold
-                            .copyWith(
-                          color:
-                              const Color(
-                            0xFF8B1C1C,
-                          ),
+                        style: AppTextStyle.semiBold.copyWith(
+                          color: const Color(0xFF8B1C1C),
                         ),
                       ),
                     ),
@@ -1168,20 +986,15 @@ class DiwaliEnrollmentDetailView extends GetView<DiwaliEnrollmentController> {
               children: [
                 _statusBadge(status),
 
-                if (groupId != null &&
-                    groupId.isNotEmpty) ...[
+                if (groupId != null && groupId.isNotEmpty) ...[
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
                       'Group: ${_shortId(groupId)}',
-                      style: AppTextStyle
-                          .regularSmall
-                          .copyWith(
-                        color:
-                            Colors.grey.shade500,
+                      style: AppTextStyle.regularSmall.copyWith(
+                        color: Colors.grey.shade500,
                       ),
-                      overflow:
-                          TextOverflow.ellipsis,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
                 ],
@@ -1194,11 +1007,24 @@ class DiwaliEnrollmentDetailView extends GetView<DiwaliEnrollmentController> {
               const SizedBox(height: 6),
               Text(
                 'Reversed by: $reversedBy',
-                style: AppTextStyle
-                    .regularSmall
-                    .copyWith(
-                  color:
-                      Colors.red.shade600,
+                style: AppTextStyle.regularSmall.copyWith(
+                  color: Colors.red.shade600,
+                ),
+              ),
+            ],
+
+            if (receiptNumber != null &&
+                receiptNumber.isNotEmpty &&
+                receiptNumber != 'null') ...[
+              const SizedBox(height: 10),
+              Align(
+                alignment: Alignment.centerRight,
+                child: OutlinedButton.icon(
+                  onPressed: () {
+                    controller.viewPaymentReceipt(payment);
+                  },
+                  icon: const Icon(Icons.receipt_long, size: 18),
+                  label: const Text('View Receipt'),
                 ),
               ),
             ],
@@ -1206,52 +1032,29 @@ class DiwaliEnrollmentDetailView extends GetView<DiwaliEnrollmentController> {
             if (status == 'Active') ...[
               const SizedBox(height: 10),
               Row(
-                mainAxisAlignment:
-                    MainAxisAlignment.end,
+                mainAxisAlignment: MainAxisAlignment.end,
                 children: [
                   OutlinedButton.icon(
                     onPressed: () {
-                      _confirmSingleRevert(
-                        context,
-                        transactionId,
-                      );
+                      _confirmSingleRevert(context, transactionId);
                     },
-                    icon: const Icon(
-                      Icons.undo,
-                      size: 18,
-                    ),
-                    label:
-                        const Text('Revert'),
-                    style: OutlinedButton
-                        .styleFrom(
-                      foregroundColor:
-                          Colors.red.shade700,
+                    icon: const Icon(Icons.undo, size: 18),
+                    label: const Text('Revert'),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Colors.red.shade700,
                     ),
                   ),
 
-                  if (groupId != null &&
-                      groupId.isNotEmpty) ...[
+                  if (groupId != null && groupId.isNotEmpty) ...[
                     const SizedBox(width: 8),
                     OutlinedButton.icon(
                       onPressed: () {
-                        _confirmGroupRevert(
-                          context,
-                          groupId,
-                        );
+                        _confirmGroupRevert(context, groupId);
                       },
-                      icon: const Icon(
-                        Icons
-                            .history_toggle_off,
-                        size: 18,
-                      ),
-                      label: const Text(
-                        'Revert Group',
-                      ),
-                      style: OutlinedButton
-                          .styleFrom(
-                        foregroundColor:
-                            Colors.orange
-                                .shade800,
+                      icon: const Icon(Icons.history_toggle_off, size: 18),
+                      label: const Text('Revert Group'),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: Colors.orange.shade800,
                       ),
                     ),
                   ],
@@ -1268,24 +1071,17 @@ class DiwaliEnrollmentDetailView extends GetView<DiwaliEnrollmentController> {
     final active = status == 'Active';
 
     return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: 9,
-        vertical: 5,
-      ),
+      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
       decoration: BoxDecoration(
         color: active
             ? Colors.green.withOpacity(0.1)
             : Colors.red.withOpacity(0.1),
-        borderRadius:
-            BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(8),
       ),
       child: Text(
         status,
-        style: AppTextStyle.semiBoldSmall
-            .copyWith(
-          color: active
-              ? Colors.green.shade700
-              : Colors.red.shade700,
+        style: AppTextStyle.semiBoldSmall.copyWith(
+          color: active ? Colors.green.shade700 : Colors.red.shade700,
         ),
       ),
     );
@@ -1299,84 +1095,56 @@ class DiwaliEnrollmentDetailView extends GetView<DiwaliEnrollmentController> {
     BuildContext context,
     int transactionId,
   ) async {
-    final reasonController =
-        TextEditingController();
+    final reasonController = TextEditingController();
 
     await showDialog(
       context: context,
       builder: (dialogContext) {
         return AlertDialog(
-          title:
-              const Text('Revert Payment?'),
+          title: const Text('Revert Payment?'),
           content: TextField(
             controller: reasonController,
             maxLines: 2,
-            decoration:
-                const InputDecoration(
-              labelText:
-                  'Reason (optional)',
-              border:
-                  OutlineInputBorder(),
+            decoration: const InputDecoration(
+              labelText: 'Reason (optional)',
+              border: OutlineInputBorder(),
             ),
           ),
           actions: [
             TextButton(
               onPressed: () {
-                Navigator.pop(
-                  dialogContext,
-                );
+                Navigator.pop(dialogContext);
               },
-              child:
-                  const Text('Cancel'),
+              child: const Text('Cancel'),
             ),
             Obx(() {
               return ElevatedButton(
-                onPressed: controller
-                        .isRevertingPayment
-                        .value
+                onPressed: controller.isRevertingPayment.value
                     ? null
                     : () async {
-                        final success =
-                            await controller
-                                .revertPayment(
-                          enrollmentId:
-                              enrollmentId,
-                          transactionId:
-                              transactionId,
-                          reason:
-                              reasonController
-                                  .text,
+                        final success = await controller.revertPayment(
+                          enrollmentId: enrollmentId,
+                          transactionId: transactionId,
+                          reason: reasonController.text,
                         );
 
-                        if (success &&
-                            dialogContext
-                                .mounted) {
-                          Navigator.pop(
-                            dialogContext,
-                          );
+                        if (success && dialogContext.mounted) {
+                          Navigator.pop(dialogContext);
                         }
                       },
-                style: ElevatedButton
-                    .styleFrom(
-                  backgroundColor:
-                      Colors.red.shade700,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.red.shade700,
                 ),
-                child: controller
-                        .isRevertingPayment
-                        .value
+                child: controller.isRevertingPayment.value
                     ? const SizedBox(
                         height: 18,
                         width: 18,
-                        child:
-                            CircularProgressIndicator(
-                          color:
-                              Colors.white,
+                        child: CircularProgressIndicator(
+                          color: Colors.white,
                           strokeWidth: 2,
                         ),
                       )
-                    : const Text(
-                        'Revert',
-                      ),
+                    : const Text('Revert'),
               );
             }),
           ],
@@ -1395,85 +1163,56 @@ class DiwaliEnrollmentDetailView extends GetView<DiwaliEnrollmentController> {
     BuildContext context,
     String paymentGroupId,
   ) async {
-    final reasonController =
-        TextEditingController();
+    final reasonController = TextEditingController();
 
     await showDialog(
       context: context,
       builder: (dialogContext) {
         return AlertDialog(
-          title: const Text(
-            'Revert Entire Payment Group?',
-          ),
+          title: const Text('Revert Entire Payment Group?'),
           content: TextField(
             controller: reasonController,
             maxLines: 2,
-            decoration:
-                const InputDecoration(
-              labelText:
-                  'Reason (optional)',
-              border:
-                  OutlineInputBorder(),
+            decoration: const InputDecoration(
+              labelText: 'Reason (optional)',
+              border: OutlineInputBorder(),
             ),
           ),
           actions: [
             TextButton(
               onPressed: () {
-                Navigator.pop(
-                  dialogContext,
-                );
+                Navigator.pop(dialogContext);
               },
-              child:
-                  const Text('Cancel'),
+              child: const Text('Cancel'),
             ),
             Obx(() {
               return ElevatedButton(
-                onPressed: controller
-                        .isRevertingPaymentGroup
-                        .value
+                onPressed: controller.isRevertingPaymentGroup.value
                     ? null
                     : () async {
-                        final success =
-                            await controller
-                                .revertPaymentGroup(
-                          enrollmentId:
-                              enrollmentId,
-                          paymentGroupId:
-                              paymentGroupId,
-                          reason:
-                              reasonController
-                                  .text,
+                        final success = await controller.revertPaymentGroup(
+                          enrollmentId: enrollmentId,
+                          paymentGroupId: paymentGroupId,
+                          reason: reasonController.text,
                         );
 
-                        if (success &&
-                            dialogContext
-                                .mounted) {
-                          Navigator.pop(
-                            dialogContext,
-                          );
+                        if (success && dialogContext.mounted) {
+                          Navigator.pop(dialogContext);
                         }
                       },
-                style: ElevatedButton
-                    .styleFrom(
-                  backgroundColor:
-                      Colors.orange.shade800,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.orange.shade800,
                 ),
-                child: controller
-                        .isRevertingPaymentGroup
-                        .value
+                child: controller.isRevertingPaymentGroup.value
                     ? const SizedBox(
                         height: 18,
                         width: 18,
-                        child:
-                            CircularProgressIndicator(
-                          color:
-                              Colors.white,
+                        child: CircularProgressIndicator(
+                          color: Colors.white,
                           strokeWidth: 2,
                         ),
                       )
-                    : const Text(
-                        'Revert Group',
-                      ),
+                    : const Text('Revert Group'),
               );
             }),
           ],
@@ -1492,11 +1231,9 @@ class DiwaliEnrollmentDetailView extends GetView<DiwaliEnrollmentController> {
     BuildContext context,
     DiwaliEnrollmentModel enrollment,
   ) async {
-    final fromWeekController =
-        TextEditingController();
+    final fromWeekController = TextEditingController();
 
-    final newChitsController =
-        TextEditingController(
+    final newChitsController = TextEditingController(
       text: enrollment.currentChits.toString(),
     );
 
@@ -1504,84 +1241,53 @@ class DiwaliEnrollmentDetailView extends GetView<DiwaliEnrollmentController> {
       context: context,
       builder: (dialogContext) {
         return AlertDialog(
-          shape:
-              RoundedRectangleBorder(
-            borderRadius:
-                BorderRadius.circular(16),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
           ),
           title: Text(
             'Modify Chit Quantity',
-            style:
-                AppTextStyle.semiBoldLarge,
+            style: AppTextStyle.semiBoldLarge,
           ),
-          content:
-              SingleChildScrollView(
+          content: SingleChildScrollView(
             child: Column(
-              mainAxisSize:
-                  MainAxisSize.min,
+              mainAxisSize: MainAxisSize.min,
               children: [
                 Align(
-                  alignment:
-                      Alignment.centerLeft,
+                  alignment: Alignment.centerLeft,
                   child: Text(
                     'Current: '
                     '${enrollment.currentChits} chits',
-                    style: AppTextStyle
-                        .regularSmall
-                        .copyWith(
-                      color: Colors
-                          .grey.shade600,
+                    style: AppTextStyle.regularSmall.copyWith(
+                      color: Colors.grey.shade600,
                     ),
                   ),
                 ),
-                const SizedBox(
-                    height: 12),
+                const SizedBox(height: 12),
                 TextField(
-                  controller:
-                      fromWeekController,
-                  keyboardType:
-                      TextInputType.number,
-                  inputFormatters: [
-                    FilteringTextInputFormatter
-                        .digitsOnly,
-                  ],
-                  decoration:
-                      const InputDecoration(
-                    labelText:
-                        'From Week Number',
-                    border:
-                        OutlineInputBorder(),
+                  controller: fromWeekController,
+                  keyboardType: TextInputType.number,
+                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                  decoration: const InputDecoration(
+                    labelText: 'From Week Number',
+                    border: OutlineInputBorder(),
                   ),
                 ),
-                const SizedBox(
-                    height: 12),
+                const SizedBox(height: 12),
                 TextField(
-                  controller:
-                      newChitsController,
-                  keyboardType:
-                      TextInputType.number,
-                  inputFormatters: [
-                    FilteringTextInputFormatter
-                        .digitsOnly,
-                  ],
-                  decoration:
-                      const InputDecoration(
-                    labelText:
-                        'New Chit Count',
-                    border:
-                        OutlineInputBorder(),
+                  controller: newChitsController,
+                  keyboardType: TextInputType.number,
+                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                  decoration: const InputDecoration(
+                    labelText: 'New Chit Count',
+                    border: OutlineInputBorder(),
                   ),
                 ),
-                const SizedBox(
-                    height: 10),
+                const SizedBox(height: 10),
                 Text(
                   'Any excess from previously paid weeks '
                   'will be adjusted against upcoming dues.',
-                  style: AppTextStyle
-                      .regularSmall
-                      .copyWith(
-                    color:
-                        Colors.grey.shade500,
+                  style: AppTextStyle.regularSmall.copyWith(
+                    color: Colors.grey.shade500,
                   ),
                 ),
               ],
@@ -1590,91 +1296,55 @@ class DiwaliEnrollmentDetailView extends GetView<DiwaliEnrollmentController> {
           actions: [
             TextButton(
               onPressed: () {
-                Navigator.pop(
-                  dialogContext,
-                );
+                Navigator.pop(dialogContext);
               },
-              child:
-                  const Text('Cancel'),
+              child: const Text('Cancel'),
             ),
             Obx(() {
-              final loading =
-                  controller
-                      .isModifyingChits
-                      .value;
+              final loading = controller.isModifyingChits.value;
 
               return ElevatedButton(
                 onPressed: loading
                     ? null
                     : () async {
                         final fromWeek =
-                            int.tryParse(
-                                  fromWeekController
-                                      .text
-                                      .trim(),
-                                ) ??
-                                0;
+                            int.tryParse(fromWeekController.text.trim()) ?? 0;
 
                         final newChits =
-                            int.tryParse(
-                                  newChitsController
-                                      .text
-                                      .trim(),
-                                ) ??
-                                0;
+                            int.tryParse(newChitsController.text.trim()) ?? 0;
 
-                        if (fromWeek <= 0 ||
-                            newChits <= 0) {
+                        if (fromWeek <= 0 || newChits <= 0) {
                           Get.snackbar(
                             'Invalid',
                             'Enter valid values',
-                            snackPosition:
-                                SnackPosition
-                                    .BOTTOM,
+                            snackPosition: SnackPosition.BOTTOM,
                           );
                           return;
                         }
 
-                        final success =
-                            await controller
-                                .modifyChits(
-                          enrollmentId:
-                              enrollment.id,
-                          fromWeekNumber:
-                              fromWeek,
-                          newChits:
-                              newChits,
+                        final success = await controller.modifyChits(
+                          enrollmentId: enrollment.id,
+                          fromWeekNumber: fromWeek,
+                          newChits: newChits,
                         );
 
-                        if (success &&
-                            dialogContext
-                                .mounted) {
-                          Navigator.pop(
-                            dialogContext,
-                          );
+                        if (success && dialogContext.mounted) {
+                          Navigator.pop(dialogContext);
                         }
                       },
-                style: ElevatedButton
-                    .styleFrom(
-                  backgroundColor:
-                      const Color(
-                    0xFF2563EB,
-                  ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF2563EB),
                 ),
                 child: loading
                     ? const SizedBox(
                         height: 18,
                         width: 18,
-                        child:
-                            CircularProgressIndicator(
-                          color:
-                              Colors.white,
+                        child: CircularProgressIndicator(
+                          color: Colors.white,
                           strokeWidth: 2,
                         ),
                       )
-                    : const Text(
-                        'Update',
-                      ),
+                    : const Text('Update'),
               );
             }),
           ],
@@ -1690,55 +1360,32 @@ class DiwaliEnrollmentDetailView extends GetView<DiwaliEnrollmentController> {
   // ADJUSTMENT LOGS
   // ============================================================
 
-  Widget _buildAdjustmentSection(
-    BuildContext context,
-  ) {
+  Widget _buildAdjustmentSection(BuildContext context) {
     return ExpansionTile(
-      tilePadding:
-          const EdgeInsets.symmetric(
-        horizontal: 4,
-      ),
-      title: Text(
-        'Adjustment Logs',
-        style: AppTextStyle.semiBold,
-      ),
+      tilePadding: const EdgeInsets.symmetric(horizontal: 4),
+      title: Text('Adjustment Logs', style: AppTextStyle.semiBold),
       children: [
         Obx(() {
-          if (controller
-              .isAdjustmentLogsLoading
-              .value) {
+          if (controller.isAdjustmentLogsLoading.value) {
             return const Padding(
-              padding:
-                  EdgeInsets.all(20),
-              child: Center(
-                child:
-                    CircularProgressIndicator(),
-              ),
+              padding: EdgeInsets.all(20),
+              child: Center(child: CircularProgressIndicator()),
             );
           }
 
-          if (controller
-              .adjustmentLogs.isEmpty) {
+          if (controller.adjustmentLogs.isEmpty) {
             return Padding(
-              padding:
-                  const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(16),
               child: Text(
                 'No adjustment logs',
-                style: AppTextStyle
-                    .regularSmall,
+                style: AppTextStyle.regularSmall,
               ),
             );
           }
 
           return Column(
-            children: controller
-                .adjustmentLogs
-                .map(
-                  (log) =>
-                      _adjustmentLogTile(
-                    log,
-                  ),
-                )
+            children: controller.adjustmentLogs
+                .map((log) => _adjustmentLogTile(log))
                 .toList(),
           );
         }),
@@ -1746,53 +1393,41 @@ class DiwaliEnrollmentDetailView extends GetView<DiwaliEnrollmentController> {
     );
   }
 
-  Widget _adjustmentLogTile(
-    AdjustmentLogModel log,
-  ) {
+  Widget _adjustmentLogTile(AdjustmentLogModel log) {
     return Container(
       width: double.infinity,
-      margin:
-          const EdgeInsets.only(bottom: 8),
-      padding:
-          const EdgeInsets.all(12),
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius:
-            BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
-        crossAxisAlignment:
-            CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             'Source Weeks: '
             '${log.sourceWeeks}',
-            style:
-                AppTextStyle.semiBoldSmall,
+            style: AppTextStyle.semiBoldSmall,
           ),
           const SizedBox(height: 4),
           Text(
             'Source Excess: '
             '₹${log.sourceExcessTotal.toStringAsFixed(2)}',
-            style:
-                AppTextStyle.regularSmall,
+            style: AppTextStyle.regularSmall,
           ),
           const SizedBox(height: 4),
           Text(
             'Applied to Week '
             '${log.targetWeek}: '
             '₹${log.appliedAmount.toStringAsFixed(2)}',
-            style:
-                AppTextStyle.regularSmall,
+            style: AppTextStyle.regularSmall,
           ),
           const SizedBox(height: 4),
           Text(
             log.note,
-            style: AppTextStyle
-                .regularSmall
-                .copyWith(
-              color:
-                  Colors.grey.shade600,
+            style: AppTextStyle.regularSmall.copyWith(
+              color: Colors.grey.shade600,
             ),
           ),
         ],
@@ -1804,15 +1439,10 @@ class DiwaliEnrollmentDetailView extends GetView<DiwaliEnrollmentController> {
   // SECTION TITLE
   // ============================================================
 
-  Widget _buildSectionTitle(
-    String title,
-  ) {
+  Widget _buildSectionTitle(String title) {
     return Text(
       title,
-      style: AppTextStyle.semiBold.copyWith(
-        color:
-            const Color(0xFF6B7280),
-      ),
+      style: AppTextStyle.semiBold.copyWith(color: const Color(0xFF6B7280)),
     );
   }
 
@@ -1823,21 +1453,15 @@ class DiwaliEnrollmentDetailView extends GetView<DiwaliEnrollmentController> {
   Widget _buildNoData(String text) {
     return Container(
       width: double.infinity,
-      padding:
-          const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius:
-            BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(14),
       ),
       child: Center(
         child: Text(
           text,
-          style: AppTextStyle.regular
-              .copyWith(
-            color:
-                Colors.grey.shade600,
-          ),
+          style: AppTextStyle.regular.copyWith(color: Colors.grey.shade600),
         ),
       ),
     );
@@ -1856,10 +1480,7 @@ class DiwaliEnrollmentDetailView extends GetView<DiwaliEnrollmentController> {
       return value.toDouble();
     }
 
-    return double.tryParse(
-          value.toString(),
-        ) ??
-        0;
+    return double.tryParse(value.toString()) ?? 0;
   }
 
   int _toInt(dynamic value) {
@@ -1871,10 +1492,7 @@ class DiwaliEnrollmentDetailView extends GetView<DiwaliEnrollmentController> {
       return value.toInt();
     }
 
-    return int.tryParse(
-          value.toString(),
-        ) ??
-        0;
+    return int.tryParse(value.toString()) ?? 0;
   }
 
   String _shortId(String id) {

@@ -3,8 +3,6 @@ import 'package:get/get.dart';
 import 'package:sri_murugan_chits/models/diwali_scheme.dart/diwali_scheme_model.dart';
 import 'package:sri_murugan_chits/services/repositary/diwali_scheme/diwali_scheme_repo.dart';
 
-
-
 class DiwaliSchemeController extends GetxController {
   final DiwaliSchemeRepository _repository;
 
@@ -48,7 +46,8 @@ class DiwaliSchemeController extends GetxController {
 
   void _onScroll() {
     if (!scrollController.hasClients) return;
-    final nearBottom = scrollController.position.pixels >=
+    final nearBottom =
+        scrollController.position.pixels >=
         scrollController.position.maxScrollExtent - 200;
     if (nearBottom) loadMore();
   }
@@ -113,24 +112,44 @@ class DiwaliSchemeController extends GetxController {
   // ==========================================================
 
   /// Returns true on success so the form screen can pop itself.
+
   Future<bool> saveScheme(Map<String, dynamic> body, {int? id}) async {
+    if (isSaving.value) return false;
+
     try {
       isSaving.value = true;
 
+      debugPrint('SCHEME ID: $id');
+      debugPrint('REQUEST BODY: $body');
+
       if (id == null) {
         await _repository.createScheme(body);
-        Get.snackbar('Success', 'Scheme created successfully',
-            snackPosition: SnackPosition.BOTTOM);
       } else {
         await _repository.updateScheme(id, body);
-        Get.snackbar('Success', 'Scheme updated successfully',
-            snackPosition: SnackPosition.BOTTOM);
       }
 
-      await fetchSchemes(reset: true);
+      Get.snackbar(
+        'Success',
+        id == null
+            ? 'Scheme created successfully'
+            : 'Scheme updated successfully',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+
+      // Refresh separately; don't wait for list refresh to finish.
+      fetchSchemes(reset: true);
+
       return true;
-    } catch (e) {
-      _showError(e);
+    } catch (e, stackTrace) {
+      debugPrint('SAVE SCHEME ERROR: $e');
+      debugPrintStack(stackTrace: stackTrace);
+
+      Get.snackbar(
+        'Error',
+        e.toString().replaceFirst('Exception: ', ''),
+        snackPosition: SnackPosition.BOTTOM,
+      );
+
       return false;
     } finally {
       isSaving.value = false;

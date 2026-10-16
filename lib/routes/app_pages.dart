@@ -1,5 +1,9 @@
 import 'package:get/get_navigation/src/routes/get_route.dart';
 import 'package:sri_murugan_chits/screens/auth/auth_binding.dart';
+import 'package:sri_murugan_chits/screens/auth/change_password/change_password_binding.dart';
+import 'package:sri_murugan_chits/screens/auth/change_password/change_password_screen.dart';
+import 'package:sri_murugan_chits/screens/auth/forgot_password.dart/forgot_password_binding.dart';
+import 'package:sri_murugan_chits/screens/auth/forgot_password.dart/forgot_password_screen.dart';
 import 'package:sri_murugan_chits/screens/auth/login_screen.dart';
 import 'package:sri_murugan_chits/screens/collections/collection_binding.dart';
 import 'package:sri_murugan_chits/screens/collections/collection_screen.dart';
@@ -25,6 +29,8 @@ import 'package:sri_murugan_chits/screens/master/emi_scheme/emi_scheme_binding.d
 import 'package:sri_murugan_chits/screens/master/emi_scheme/emi_scheme_screen.dart';
 import 'package:sri_murugan_chits/screens/report/emi_payment_report_binding.dart';
 import 'package:sri_murugan_chits/screens/report/emi_payment_report_screen.dart';
+import 'package:sri_murugan_chits/screens/report/profit/emi_profit_report_binding.dart';
+import 'package:sri_murugan_chits/screens/report/profit/emi_profit_report_screen.dart';
 import 'package:sri_murugan_chits/screens/settings/settings_binding.dart'
     hide EmiPaymentReportBinding;
 import 'package:sri_murugan_chits/screens/settings/settings_screen.dart';
@@ -89,10 +95,7 @@ class AppRoutes {
       name: '/emi-enrollments-list',
       page: () => const EmiEnrollmentListScreen(),
     ),
-    GetPage(
-      name: '/today-paid',
-      page: () => const TodayCollectionScreen(),
-    ),
+    GetPage(name: '/today-paid', page: () => const TodayCollectionScreen()),
     GetPage(
       name: '/emi-payment-report',
       page: () => const EmiPaymentReportScreen(),
@@ -102,6 +105,22 @@ class AppRoutes {
       name: '/dues-customers',
       page: () => const DuesScreen(),
       binding: DuesBinding(), // 👈 add this
+    ),
+    GetPage(
+      name: "/change-password",
+      page: () => ChangePasswordScreen(),
+      binding: ChangePasswordBinding(),
+    ),
+    GetPage(
+      name: "/forgot-password",
+      page: () => ForgotPasswordScreen(),
+      binding: ForgotPasswordBinding(),
+    ),
+
+    GetPage(
+      name: '/emi-profit-report',
+      page: () =>  EmiProfitReportScreen(),
+      binding: EmiProfitReportBinding(),
     ),
   ];
 }

@@ -1556,6 +1556,95 @@ class DiwaliEnrollmentController extends GetxController {
   }
 
   // ============================================================
+  // VIEW OLD PAYMENT RECEIPT
+  // ============================================================
+
+  void viewPaymentReceipt(Map<String, dynamic> payment) {
+    final receiptNumber =
+        (payment['receipt_number'] ?? payment['receiptNumber'])
+            ?.toString();
+
+    if (receiptNumber == null ||
+        receiptNumber.trim().isEmpty ||
+        receiptNumber == 'null') {
+      Get.snackbar(
+        'Receipt Not Available',
+        'Receipt number is not available for this payment.',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+      return;
+    }
+
+    // A bulk receipt may cover multiple weeks. Use every history row
+    // with the same receipt number to rebuild the original receipt total.
+    final matchingPayments = paymentHistory.where((item) {
+      final itemReceipt =
+          (item['receipt_number'] ?? item['receiptNumber'])?.toString();
+      return itemReceipt == receiptNumber;
+    }).toList();
+
+    final rows = matchingPayments.isEmpty
+        ? <Map<String, dynamic>>[payment]
+        : matchingPayments;
+
+    final totalAmount = rows.fold<double>(
+      0,
+      (sum, item) => sum + _toDouble(item['amount']),
+    );
+
+    final modes = <String>{};
+    for (final item in rows) {
+      final rawMode = item['payment_mode'] ?? item['paymentMode'];
+      final mode = rawMode?.toString().trim();
+      if (mode != null && mode.isNotEmpty && mode != 'null') {
+        modes.add(mode);
+      }
+    }
+
+    final paymentMode = modes.isEmpty ? '-' : modes.join(' + ');
+    final coveredWeeks = _extractCoveredWeeksFromHistory(receiptNumber);
+
+    final rawWeek = payment['week_number'] ??
+        payment['weekNumber'] ??
+        payment['week'];
+
+    final installmentLabel = coveredWeeks.length > 1
+        ? 'Advance / Bulk Payment'
+        : coveredWeeks.length == 1
+            ? coveredWeeks.first
+            : rawWeek != null
+                ? 'Week $rawWeek'
+                : 'Payment';
+
+    final rawDate =
+        (payment['payment_date'] ?? payment['paymentDate'])?.toString();
+
+    // Do not show today's balance as if it were the historical balance.
+    // This field is used only if the API saved it with the payment row.
+    final historicalBalance =
+        payment['remaining_balance'] ?? payment['remainingBalance'];
+
+    _showPaymentReceipt(
+      receiptNumber: receiptNumber,
+      customerName: _customerName(),
+      customerCode: _customerCode(),
+      schemeName: _schemeName(),
+      installmentLabel: installmentLabel,
+      paidAmount: _formatAmount(totalAmount),
+      paymentMode: paymentMode,
+      paymentDate: rawDate == null ||
+              rawDate.isEmpty ||
+              rawDate == 'null'
+          ? '-'
+          : rawDate,
+      remainingBalance: historicalBalance == null
+          ? '-'
+          : _formatAmount(_toDouble(historicalBalance)),
+      coveredWeeks: coveredWeeks.isEmpty ? null : coveredWeeks,
+    );
+  }
+
+  // ============================================================
   // REVERT SINGLE PAYMENT
   // ============================================================
 

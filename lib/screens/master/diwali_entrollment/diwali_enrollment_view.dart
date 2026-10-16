@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-
 import 'package:sri_murugan_chits/models/diwali_enrollment/diwali_enrollment_model.dart';
 import 'package:sri_murugan_chits/screens/master/diwali_entrollment/diwali_enrollment_detail_view.dart';
 import 'package:sri_murugan_chits/screens/master/diwali_entrollment/diwali_enrollment_form_view.dart';
@@ -22,6 +21,14 @@ class DiwaliEnrollmentView extends GetView<DiwaliEnrollmentController> {
         backgroundColor: const Color(0xFFF6F7FB),
         elevation: 0,
         foregroundColor: const Color(0xFF1F2937),
+        actions: [
+          IconButton(
+            onPressed: () {
+              Get.toNamed('/customer');
+            },
+            icon: const Icon(Icons.emoji_people),
+          ),
+        ],
       ),
 
       floatingActionButton: FloatingActionButton(

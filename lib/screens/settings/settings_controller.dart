@@ -11,7 +11,7 @@ class SettingsController extends GetxController {
     {
       "title": "Dues",
       "subtitle": "Manage Dues Customers",
-      "icon": "people",
+      "icon": "assignmentlate",
       "route": "/dues-customers",
     },
     {
@@ -55,6 +55,12 @@ class SettingsController extends GetxController {
       "subtitle": "Report",
       "icon": "person_add",
       "route": "/emi-payment-report",
+    },
+    {
+      "title": "Emi Profit Report",
+      "subtitle": "Report",
+      "icon": "person_add",
+      "route": "/emi-profit-report",
     },
   ];
 

@@ -1,4 +1,6 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
+
 import 'package:sri_murugan_chits/services/api/storage_service.dart';
 
 import 'api_constants.dart';
@@ -29,9 +31,25 @@ class ApiService {
         onRequest: (options, handler) async {
           final token = await StorageService.getToken();
 
+          debugPrint("========================================");
+          debugPrint("API REQUEST");
+          debugPrint("METHOD : ${options.method}");
+          debugPrint("URL    : ${options.uri}");
+          debugPrint(
+            "TOKEN EXISTS : ${token != null && token.isNotEmpty}",
+          );
+
           if (token != null && token.isNotEmpty) {
-            options.headers["Authorization"] = "Bearer $token";
+            options.headers["Authorization"] =
+                "Bearer $token";
+
+            debugPrint("AUTHORIZATION : Bearer <TOKEN>");
+          } else {
+            debugPrint("AUTHORIZATION : NOT ADDED");
           }
+
+          debugPrint("REQUEST DATA : ${options.data}");
+          debugPrint("========================================");
 
           return handler.next(options);
         },
@@ -41,14 +59,24 @@ class ApiService {
         // ========================================================
 
         onError: (DioException error, handler) async {
+          debugPrint("========================================");
+          debugPrint("API ERROR");
+          debugPrint("METHOD : ${error.requestOptions.method}");
+          debugPrint("URL    : ${error.requestOptions.uri}");
+          debugPrint(
+            "STATUS : ${error.response?.statusCode}",
+          );
+          debugPrint(
+            "RESPONSE : ${error.response?.data}",
+          );
+          debugPrint("========================================");
+
           if (error.response?.statusCode == 401) {
             await StorageService.logout();
 
-            // Navigation should preferably be handled
-            // by your AuthController / GetX middleware.
-            //
-            // Example:
-            // Get.offAllNamed('/login');
+            debugPrint(
+              "TOKEN CLEARED BECAUSE SERVER RETURNED 401",
+            );
           }
 
           return handler.next(error);

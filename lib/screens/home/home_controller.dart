@@ -3,10 +3,10 @@ import 'package:get/get.dart';
 
 import 'package:sri_murugan_chits/models/dashboard/dashboard_model.dart';
 import 'package:sri_murugan_chits/services/repositary/dashboard/dashboard_repository.dart';
+import 'package:sri_murugan_chits/services/api/storage_service.dart';
 
 class HomeController extends GetxController {
-  final HomeRepository repository =
-      HomeRepository();
+  final HomeRepository repository = HomeRepository();
 
   // ============================================================
   // STATE
@@ -29,7 +29,44 @@ class HomeController extends GetxController {
   void onInit() {
     super.onInit();
 
-    fetchDashboard();
+    _initializeDashboard();
+  }
+
+  // ============================================================
+  // INITIALIZE DASHBOARD
+  // ============================================================
+
+  Future<void> _initializeDashboard() async {
+    try {
+      final token = await StorageService.getToken();
+
+      debugPrint(
+        '🔐 [Dashboard] Token exists: '
+        '${token != null && token.isNotEmpty}',
+      );
+
+      // ========================================================
+      // NO TOKEN
+      // ========================================================
+
+      if (token == null || token.isEmpty) {
+        debugPrint(
+          '🟡 [Dashboard] No token. Dashboard API skipped.',
+        );
+
+        return;
+      }
+
+      // ========================================================
+      // TOKEN EXISTS
+      // ========================================================
+
+      await fetchDashboard();
+    } catch (e) {
+      debugPrint(
+        '🔴 [Dashboard] Initialization error: $e',
+      );
+    }
   }
 
   // ============================================================
@@ -40,6 +77,24 @@ class HomeController extends GetxController {
     bool showLoader = true,
   }) async {
     try {
+      // ========================================================
+      // TOKEN CHECK BEFORE API
+      // ========================================================
+
+      final token = await StorageService.getToken();
+
+      if (token == null || token.isEmpty) {
+        debugPrint(
+          '🟡 [Dashboard] Token missing. API call skipped.',
+        );
+
+        return;
+      }
+
+      // ========================================================
+      // LOADER
+      // ========================================================
+
       if (showLoader) {
         isLoading.value = true;
       }
@@ -49,6 +104,10 @@ class HomeController extends GetxController {
       debugPrint(
         '🔵 [Dashboard] Fetch started',
       );
+
+      // ========================================================
+      // API
+      // ========================================================
 
       final result =
           await repository.getDashboardSummary();
@@ -69,14 +128,17 @@ class HomeController extends GetxController {
                 '',
               );
 
-      Get.snackbar(
-        'Dashboard',
-        errorMessage.value.isEmpty
-            ? 'Unable to load dashboard'
-            : errorMessage.value,
-        snackPosition:
-            SnackPosition.BOTTOM,
-      );
+      // ========================================================
+      // SHOW ERROR ONLY IF WE ACTUALLY HAVE A TOKEN
+      // ========================================================
+
+      if (errorMessage.value.isNotEmpty) {
+        Get.snackbar(
+          'Dashboard',
+          errorMessage.value,
+          snackPosition: SnackPosition.BOTTOM,
+        );
+      }
     } finally {
       isLoading.value = false;
     }

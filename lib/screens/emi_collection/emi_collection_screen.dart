@@ -571,11 +571,13 @@ class EmiCollectionScreen
             width: double.infinity,
             height: 44,
             child: ElevatedButton.icon(
-              onPressed: balance <= 0
-                  ? null
-                  : () {
-                      // Payment connection later
-                    },
+             
+onPressed: balance <= 0
+    ? null
+    : () {
+        controller.collectPayment(item);
+      },
+
               icon: const Icon(
                 Icons.payments_rounded,
                 size: 19,

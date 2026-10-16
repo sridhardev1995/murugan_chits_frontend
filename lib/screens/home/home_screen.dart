@@ -20,18 +20,6 @@ class HomeScreen extends GetView<HomeController> {
   const HomeScreen({super.key});
 
   // ============================================================
-  // ADDITIONAL UI COLORS
-  // ============================================================
-
-  static const Color _gold = Color(0xFFF6C244);
-  static const Color _black = Color(0xFF1A1A1A);
-  static const Color _textDark = Color(0xFF1F2937);
-  static const Color _textGrey = Color(0xFF6B7280);
-  static const Color _green = Color(0xFF22A45D);
-  static const Color _red = Color(0xFFE0473F);
-  static const Color _blue = Color(0xFF3B82F6);
-
-  // ============================================================
   // BUILD
   // ============================================================
 
@@ -39,50 +27,14 @@ class HomeScreen extends GetView<HomeController> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.scaffold,
-
-      // appBar: AppBar(
-      //   backgroundColor: AppColors.black,
-      //   foregroundColor: AppColors.white,
-      //   elevation: 0,
-      //   title: const Text(
-      //     'Dashboard',
-      //     style: AppTextStyle.heading,
-      //   ),
-      //   actions: [
-      //     Obx(
-      //       () => IconButton(
-      //         icon: controller.isLoading.value
-      //             ? const SizedBox(
-      //                 width: 18,
-      //                 height: 18,
-      //                 child: CircularProgressIndicator(
-      //                   strokeWidth: 2,
-      //                   color: AppColors.white,
-      //                 ),
-      //               )
-      //             : const Icon(
-      //                 Icons.refresh_rounded,
-      //                 color: AppColors.white,
-      //               ),
-      //         onPressed: controller.isLoading.value
-      //             ? null
-      //             : controller.fetchDashboard,
-      //       ),
-      //     ),
-      //   ],
-      // ),
-
       body: Obx(() {
         // --------------------------------------------------------
         // INITIAL LOADING
         // --------------------------------------------------------
 
-        if (controller.isLoading.value &&
-            controller.data == null) {
+        if (controller.isLoading.value && controller.data == null) {
           return const Center(
-            child: CircularProgressIndicator(
-              color: AppColors.primary,
-            ),
+            child: CircularProgressIndicator(color: AppColors.primary),
           );
         }
 
@@ -103,12 +55,7 @@ class HomeScreen extends GetView<HomeController> {
           color: AppColors.primary,
           onRefresh: controller.refreshDashboard,
           child: ListView(
-            padding: const EdgeInsets.fromLTRB(
-              16,
-              16,
-              16,
-              24,
-            ),
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
             children: [
               _buildTodayCollectionCard(),
 
@@ -148,7 +95,7 @@ class HomeScreen extends GetView<HomeController> {
             const Icon(
               Icons.cloud_off_rounded,
               size: 44,
-              color: _textGrey,
+              color: AppColors.textGrey,
             ),
 
             const SizedBox(height: 12),
@@ -157,7 +104,7 @@ class HomeScreen extends GetView<HomeController> {
               controller.errorMessage.value,
               textAlign: TextAlign.center,
               style: AppTextStyle.regularSmall.copyWith(
-                color: _textGrey,
+                color: AppColors.textGrey,
               ),
             ),
 
@@ -173,10 +120,7 @@ class HomeScreen extends GetView<HomeController> {
                   borderRadius: BorderRadius.circular(10),
                 ),
               ),
-              child: const Text(
-                'Retry',
-                style: AppTextStyle.semiBold,
-              ),
+              child: const Text('Retry', style: AppTextStyle.semiBold),
             ),
           ],
         ),
@@ -193,34 +137,20 @@ class HomeScreen extends GetView<HomeController> {
       width: double.infinity,
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: Colors.greenAccent,
-        // gradient: const LinearGradient(
-        //   colors: [
-        //     _black,
-        //     Color(0xFF2B2B2B),
-        //   ],
-        //   begin: Alignment.topLeft,
-        //   end: Alignment.bottomRight,
-        // ),
+        color: AppColors.collectionCard,
         borderRadius: BorderRadius.circular(16),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            "TODAY'S COLLECTION",
-            style: AppTextStyle.semiBoldSmall,
-          ),
+          const Text("TODAY'S COLLECTION", style: AppTextStyle.semiBoldSmall),
 
           const SizedBox(height: 6),
 
           Obx(
             () => Text(
-              _formatCurrency(
-                controller.todayTotalCollection,
-              ),
+              _formatCurrency(controller.todayTotalCollection),
               style: AppTextStyle.heading.copyWith(
-                color: AppColors.black,
                 fontSize: 30,
                 fontWeight: FontWeight.w800,
               ),
@@ -235,8 +165,7 @@ class HomeScreen extends GetView<HomeController> {
                 child: Obx(
                   () => _todaySplitTile(
                     label: 'Diwali',
-                    amount:
-                        controller.todayDiwaliCollection,
+                    amount: controller.todayDiwaliCollection,
                   ),
                 ),
               ),
@@ -245,17 +174,14 @@ class HomeScreen extends GetView<HomeController> {
                 width: 1,
                 height: 32,
                 color: AppColors.white.withOpacity(0.24),
-                margin: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                ),
+                margin: const EdgeInsets.symmetric(horizontal: 12),
               ),
 
               Expanded(
                 child: Obx(
                   () => _todaySplitTile(
                     label: 'EMI',
-                    amount:
-                        controller.todayEmiCollection,
+                    amount: controller.todayEmiCollection,
                   ),
                 ),
               ),
@@ -270,10 +196,7 @@ class HomeScreen extends GetView<HomeController> {
   // TODAY SPLIT TILE
   // ============================================================
 
-  Widget _todaySplitTile({
-    required String label,
-    required double amount,
-  }) {
+  Widget _todaySplitTile({required String label, required double amount}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -288,10 +211,7 @@ class HomeScreen extends GetView<HomeController> {
 
         Text(
           _formatCurrency(amount),
-          style: AppTextStyle.semiBoldLarge.copyWith(
-            color: AppColors.black,
-            fontSize: 15,
-          ),
+          style: AppTextStyle.semiBoldLarge.copyWith(fontSize: 15),
         ),
       ],
     );
@@ -308,9 +228,10 @@ class HomeScreen extends GetView<HomeController> {
           child: Obx(
             () => _statCard(
               icon: Icons.people_alt_rounded,
-              iconColor: _blue,
+              iconColor: AppColors.blue,
               label: 'Customers',
               value: '${controller.totalCustomers}',
+              onTap: () => Get.toNamed('/customer'),
             ),
           ),
         ),
@@ -321,10 +242,10 @@ class HomeScreen extends GetView<HomeController> {
           child: Obx(
             () => _statCard(
               icon: Icons.card_giftcard_rounded,
-              iconColor: _gold,
+              iconColor: AppColors.gold,
               label: 'Diwali Chits',
-              value:
-                  '${controller.totalDiwaliChits}',
+              value: '${controller.totalDiwaliChits}',
+              onTap: () => Get.toNamed('/diwali-enrollments'),
             ),
           ),
         ),
@@ -341,57 +262,47 @@ class HomeScreen extends GetView<HomeController> {
     required Color iconColor,
     required String label,
     required String value,
+    VoidCallback? onTap,
   }) {
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(14),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.black.withOpacity(0.04),
-            blurRadius: 8,
-            offset: const Offset(0, 3),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            width: 34,
-            height: 34,
-            decoration: BoxDecoration(
-              color: iconColor.withOpacity(0.12),
-              borderRadius: BorderRadius.circular(9),
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(14),
+        decoration: _cardDecoration(radius: 14),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              width: 34,
+              height: 34,
+              decoration: BoxDecoration(
+                color: iconColor.withOpacity(0.12),
+                borderRadius: BorderRadius.circular(9),
+              ),
+              child: Icon(icon, size: 18, color: iconColor),
             ),
-            child: Icon(
-              icon,
-              size: 18,
-              color: iconColor,
+
+            const SizedBox(height: 10),
+
+            Text(
+              value,
+              style: AppTextStyle.heading.copyWith(
+                fontSize: 20,
+                fontWeight: FontWeight.w800,
+                color: AppColors.textDark,
+              ),
             ),
-          ),
 
-          const SizedBox(height: 10),
+            const SizedBox(height: 2),
 
-          Text(
-            value,
-            style: AppTextStyle.heading.copyWith(
-              fontSize: 20,
-              fontWeight: FontWeight.w800,
-              color: _textDark,
+            Text(
+              label,
+              style: AppTextStyle.regularSmall.copyWith(
+                color: AppColors.textGrey,
+              ),
             ),
-          ),
-
-          const SizedBox(height: 2),
-
-          Text(
-            label,
-            style: AppTextStyle.regularSmall.copyWith(
-              color: _textGrey,
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -405,13 +316,10 @@ class HomeScreen extends GetView<HomeController> {
       () => _progressCard(
         title: 'Diwali Chit Collection',
         icon: Icons.card_giftcard_rounded,
-        accent: _gold,
-        totalAmount:
-            controller.diwaliTotalAmount,
-        receivedAmount:
-            controller.diwaliReceivedAmount,
-        pendingAmount:
-            controller.diwaliPendingAmount,
+        accent: AppColors.gold,
+        totalAmount: controller.diwaliTotalAmount,
+        receivedAmount: controller.diwaliReceivedAmount,
+        pendingAmount: controller.diwaliPendingAmount,
       ),
     );
   }
@@ -424,15 +332,11 @@ class HomeScreen extends GetView<HomeController> {
     return Obx(
       () => _progressCard(
         title: 'EMI Collection',
-        icon:
-            Icons.account_balance_wallet_rounded,
-        accent: _blue,
-        totalAmount:
-            controller.emiTotalAmount,
-        receivedAmount:
-            controller.emiCollectedAmount,
-        pendingAmount:
-            controller.emiPendingCollection,
+        icon: Icons.account_balance_wallet_rounded,
+        accent: AppColors.blue,
+        totalAmount: controller.emiTotalAmount,
+        receivedAmount: controller.emiCollectedAmount,
+        pendingAmount: controller.emiPendingCollection,
       ),
     );
   }
@@ -451,27 +355,14 @@ class HomeScreen extends GetView<HomeController> {
   }) {
     final progress = totalAmount <= 0
         ? 0.0
-        : (receivedAmount / totalAmount)
-            .clamp(0.0, 1.0);
+        : (receivedAmount / totalAmount).clamp(0.0, 1.0);
 
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color:
-                AppColors.black.withOpacity(0.04),
-            blurRadius: 8,
-            offset: const Offset(0, 3),
-          ),
-        ],
-      ),
+      decoration: _cardDecoration(),
       child: Column(
-        crossAxisAlignment:
-            CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
@@ -479,16 +370,10 @@ class HomeScreen extends GetView<HomeController> {
                 width: 30,
                 height: 30,
                 decoration: BoxDecoration(
-                  color:
-                      accent.withOpacity(0.12),
-                  borderRadius:
-                      BorderRadius.circular(8),
+                  color: accent.withOpacity(0.12),
+                  borderRadius: BorderRadius.circular(8),
                 ),
-                child: Icon(
-                  icon,
-                  size: 16,
-                  color: accent,
-                ),
+                child: Icon(icon, size: 16, color: accent),
               ),
 
               const SizedBox(width: 10),
@@ -496,20 +381,18 @@ class HomeScreen extends GetView<HomeController> {
               Expanded(
                 child: Text(
                   title,
-                  style:
-                      AppTextStyle.semiBold.copyWith(
+                  style: AppTextStyle.semiBold.copyWith(
                     fontSize: 14.5,
-                    color: _textDark,
+                    color: AppColors.textDark,
                   ),
                 ),
               ),
 
               Text(
                 _formatCurrency(totalAmount),
-                style:
-                    AppTextStyle.semiBold.copyWith(
+                style: AppTextStyle.semiBold.copyWith(
                   fontSize: 13.5,
-                  color: _textDark,
+                  color: AppColors.textDark,
                 ),
               ),
             ],
@@ -518,36 +401,30 @@ class HomeScreen extends GetView<HomeController> {
           const SizedBox(height: 14),
 
           ClipRRect(
-            borderRadius:
-                BorderRadius.circular(6),
+            borderRadius: BorderRadius.circular(6),
             child: LinearProgressIndicator(
               value: progress,
               minHeight: 8,
-              backgroundColor:
-                  const Color(0xFFEFEFEF),
-              valueColor:
-                  AlwaysStoppedAnimation<Color>(
-                accent,
-              ),
+              backgroundColor: AppColors.progressTrack,
+              valueColor: AlwaysStoppedAnimation<Color>(accent),
             ),
           ),
 
           const SizedBox(height: 12),
 
           Row(
-            mainAxisAlignment:
-                MainAxisAlignment.spaceBetween,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               _amountChip(
                 label: 'Received',
                 amount: receivedAmount,
-                color: _green,
+                color: AppColors.green,
               ),
 
               _amountChip(
                 label: 'Pending',
                 amount: pendingAmount,
-                color: _red,
+                color: AppColors.red,
               ),
             ],
           ),
@@ -570,26 +447,19 @@ class HomeScreen extends GetView<HomeController> {
         Container(
           width: 7,
           height: 7,
-          decoration: BoxDecoration(
-            color: color,
-            shape: BoxShape.circle,
-          ),
+          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
         ),
 
         const SizedBox(width: 6),
 
         Text(
           '$label  ',
-          style:
-              AppTextStyle.regularSmall.copyWith(
-            color: _textGrey,
-          ),
+          style: AppTextStyle.regularSmall.copyWith(color: AppColors.textGrey),
         ),
 
         Text(
           _formatCurrency(amount),
-          style:
-              AppTextStyle.semiBoldSmall.copyWith(
+          style: AppTextStyle.semiBoldSmall.copyWith(
             color: color,
             fontSize: 12.5,
           ),
@@ -606,38 +476,25 @@ class HomeScreen extends GetView<HomeController> {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color:
-                AppColors.black.withOpacity(0.04),
-            blurRadius: 8,
-            offset: const Offset(0, 3),
-          ),
-        ],
-      ),
+      decoration: _cardDecoration(),
       child: Column(
-        crossAxisAlignment:
-            CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
               const Icon(
                 Icons.warning_amber_rounded,
                 size: 18,
-                color: _red,
+                color: AppColors.red,
               ),
 
               const SizedBox(width: 8),
 
               Text(
                 'Due & Overdue',
-                style:
-                    AppTextStyle.semiBold.copyWith(
+                style: AppTextStyle.semiBold.copyWith(
                   fontSize: 14.5,
-                  color: _textDark,
+                  color: AppColors.textDark,
                 ),
               ),
             ],
@@ -651,9 +508,7 @@ class HomeScreen extends GetView<HomeController> {
                 child: Obx(
                   () => _dueTile(
                     label: "Today's Due",
-                    value: _formatCurrency(
-                      controller.todayDue,
-                    ),
+                    value: _formatCurrency(controller.todayDue),
                   ),
                 ),
               ),
@@ -662,10 +517,8 @@ class HomeScreen extends GetView<HomeController> {
                 child: Obx(
                   () => _dueTile(
                     label: 'Overdue',
-                    value: _formatCurrency(
-                      controller.overdueAmount,
-                    ),
-                    valueColor: _red,
+                    value: _formatCurrency(controller.overdueAmount),
+                    valueColor: AppColors.red,
                   ),
                 ),
               ),
@@ -674,8 +527,7 @@ class HomeScreen extends GetView<HomeController> {
                 child: Obx(
                   () => _dueTile(
                     label: 'Customers',
-                    value:
-                        '${controller.pendingCustomers}',
+                    value: '${controller.pendingCustomers}',
                   ),
                 ),
               ),
@@ -693,17 +545,15 @@ class HomeScreen extends GetView<HomeController> {
   Widget _dueTile({
     required String label,
     required String value,
-    Color valueColor = _textDark,
+    Color valueColor = AppColors.textDark,
   }) {
     return Column(
-      crossAxisAlignment:
-          CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           label,
-          style:
-              AppTextStyle.regularSmall.copyWith(
-            color: _textGrey,
+          style: AppTextStyle.regularSmall.copyWith(
+            color: AppColors.textGrey,
             fontSize: 11.5,
           ),
         ),
@@ -712,8 +562,7 @@ class HomeScreen extends GetView<HomeController> {
 
         Text(
           value,
-          style:
-              AppTextStyle.semiBold.copyWith(
+          style: AppTextStyle.semiBold.copyWith(
             fontSize: 14,
             fontWeight: FontWeight.w800,
             color: valueColor,
@@ -726,6 +575,21 @@ class HomeScreen extends GetView<HomeController> {
   // ============================================================
   // HELPERS
   // ============================================================
+
+  /// Shared white card decoration (stat card, progress card, due card)
+  static BoxDecoration _cardDecoration({double radius = 16}) {
+    return BoxDecoration(
+      color: AppColors.white,
+      borderRadius: BorderRadius.circular(radius),
+      boxShadow: [
+        BoxShadow(
+          color: AppColors.black.withOpacity(0.04),
+          blurRadius: 8,
+          offset: const Offset(0, 3),
+        ),
+      ],
+    );
+  }
 
   static String _formatCurrency(double amount) {
     final formatter = NumberFormat.currency(

@@ -109,8 +109,14 @@ class _SchemeFormState extends State<_SchemeForm> {
       id: widget.scheme?.id,
     );
 
-    if (success && mounted) {
-      Get.back();
+    debugPrint('SAVE RESULT: $success');
+
+    if (!mounted) return;
+
+    if (success) {
+      Get.back(result: true);
+    } else {
+      debugPrint('Save failed. Screen remains open.');
     }
   }
 

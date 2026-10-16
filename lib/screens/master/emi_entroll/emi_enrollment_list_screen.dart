@@ -5,9 +5,10 @@ import 'package:intl/intl.dart';
 import 'package:sri_murugan_chits/models/emi_entroll/emi_enrollment_model.dart';
 import 'package:sri_murugan_chits/screens/master/emi_entroll/emi_enrollment_controller.dart';
 import 'package:sri_murugan_chits/screens/master/emi_entroll/emi_enrollment_detail_screen.dart';
+import 'package:sri_murugan_chits/screens/master/emi_entroll/emi_enrollment_screen.dart';
 import 'package:sri_murugan_chits/utils/colors/app_colors.dart';
 import 'package:sri_murugan_chits/utils/global/app_text_style.dart';
-// import 'package:sri_murugan_chits/utils/text_styles/app_text_style.dart';
+
 
 class EmiEnrollmentListScreen extends StatelessWidget {
   const EmiEnrollmentListScreen({super.key});
@@ -20,7 +21,14 @@ class EmiEnrollmentListScreen extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: AppColors.scaffold,
-
+      floatingActionButton: FloatingActionButton(
+        backgroundColor: AppColors.primary,
+        foregroundColor: Colors.black,
+        onPressed: () {
+          Get.to(() => const AddEnrollmentScreen());
+        },
+        child: const Icon(Icons.add, size: 28),
+      ),
       appBar: AppBar(
         title: Text(
           'EMI Enrollments',
@@ -29,6 +37,14 @@ class EmiEnrollmentListScreen extends StatelessWidget {
         backgroundColor: AppColors.white,
         foregroundColor: AppColors.black,
         elevation: 0,
+         actions: [
+          IconButton(
+            onPressed: () {
+              Get.toNamed('/customer');
+            },
+            icon: const Icon(Icons.emoji_people),
+          ),
+        ],
       ),
 
       body: Column(

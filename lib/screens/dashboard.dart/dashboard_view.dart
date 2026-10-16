@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+import 'package:sri_murugan_chits/screens/auth/auth_controller.dart';
 import 'package:sri_murugan_chits/screens/collections/collection_screen.dart';
 import 'package:sri_murugan_chits/screens/dashboard.dart/dashboard_controller.dart';
 import 'package:sri_murugan_chits/screens/emi_collection/emi_collection_screen.dart';
@@ -16,88 +18,133 @@ class DashboardView extends GetView<DashboardController> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF6F7FB),
-
-      appBar: AppBar(
-        elevation: 0,
-        backgroundColor: Colors.transparent,
-        title: Text("Sri Murugan Chits", style: AppTextStyle.heading),
-        centerTitle: true,
-        flexibleSpace: Container(
-          decoration: const BoxDecoration(
-            gradient: AppGradients.primaryGradient,
+    Future<bool?> _showExitDialog() {
+      return Get.dialog<bool>(
+        AlertDialog(
+          title: Text('Exit App?', style: AppTextStyle.semiBoldLarge),
+          content: Text(
+            'Are you sure you want to exit the app?',
+            style: AppTextStyle.regular,
           ),
+          actions: [
+            TextButton(
+              onPressed: () => Get.back(result: false),
+              child: const Text('No'),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                foregroundColor: AppColors.black,
+              ),
+              onPressed: () => Get.back(result: true),
+              child: const Text('Yes'),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) async {
+        if (didPop) return;
+
+        // Home tab-la illana, mudhal-la Home-ku po
+        if (controller.selectedIndex.value != 0) {
+          controller.changeIndex(0);
+          return;
+        }
+
+        final exit = await _showExitDialog();
+        if (exit == true) {
+          SystemNavigator.pop();
+        }
+      },
+      child: Scaffold(
+        backgroundColor: const Color(0xFFF6F7FB),
+
+        appBar: AppBar(
+          elevation: 0,
+          backgroundColor: AppColors.primary,
+          title: Text("Sri Murugan Chit", style: AppTextStyle.heading),
+          centerTitle: true,
+
+          // flexibleSpace: Container(
+          //   decoration: const BoxDecoration(
+          //     gradient: AppGradients.primaryGradient,
+          //   ),
+          // ),
+          actions: [
+            IconButton(
+              onPressed: () {
+                Get.find<AuthController>().logout();
+              },
+              icon: const Icon(Icons.logout, color: AppColors.black),
+            ),
+          ],
         ),
 
-        actions: [
-          IconButton(
-            onPressed: () {
-              Get.toNamed('/login');
-            },
-            icon: const Icon(Icons.logout, color: AppColors.black),
-          ),
-        ],
-      ),
+        body: Obx(() {
+          switch (controller.selectedIndex.value) {
+            case 0:
+              return HomeScreen();
 
-      body: Obx(() {
-        switch (controller.selectedIndex.value) {
-          case 0:
-            return HomeScreen();
+            case 1:
+              return const EmiEnrollmentListScreen();
 
-          case 1:
-            return const EmiEnrollmentListScreen();
+            case 2:
+              return EmiCollectionScreen();
 
-               case 2:
-            return EmiCollectionScreen();
+            case 3:
+              return DiwaliCollecion();
 
-          case 3:
-            return DiwaliCollecion();
+            case 4:
+              return const DiwaliEnrollmentView();
 
-          case 4:
-            return const DiwaliEnrollmentView();
+            case 5:
+              return const SettingsScreen();
 
-          case 5:
-            return const SettingsScreen();
+            default:
+              return HomeScreen();
+          }
+        }),
 
-          default:
-            return HomeScreen();
-        }
-      }),
-
-      bottomNavigationBar: Obx(() {
-        return Container(
-          decoration: const BoxDecoration(
-            gradient: AppGradients.primaryGradient,
-            borderRadius: BorderRadius.only(
-              topLeft: Radius.circular(20),
-              topRight: Radius.circular(20),
-            ),
-          ),
-          child: ClipRRect(
-            borderRadius: const BorderRadius.only(
-              topLeft: Radius.circular(20),
-              topRight: Radius.circular(20),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.only(top: 10), // 👈 gap above icons
-              child: BottomNavigationBar(
-                currentIndex: controller.selectedIndex.value,
-                onTap: controller.changeIndex,
-                type: BottomNavigationBarType.fixed,
-                iconSize: 25,
-                backgroundColor: Colors.transparent,
-                selectedItemColor: Colors.black,
-                unselectedItemColor: Colors.black54,
-                selectedFontSize: 12,
-                unselectedFontSize: 11,
-                elevation: 0,
-                items: controller.bottomItems,
+        bottomNavigationBar: Obx(() {
+          return Container(
+            decoration: const BoxDecoration(
+              gradient: AppGradients.primaryGradient,
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(20),
+                topRight: Radius.circular(20),
               ),
             ),
-          ),
-        );
-      }),
+            child: ClipRRect(
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(20),
+                topRight: Radius.circular(20),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.only(top: 10), // 👈 gap above icons
+                child: BottomNavigationBar(
+                  currentIndex: controller.selectedIndex.value,
+                  onTap: controller.changeIndex,
+                  type: BottomNavigationBarType.fixed,
+                  iconSize: 25,
+                  backgroundColor: AppColors.primary,
+
+                  // backgroundColor: Colors.transparent,
+                  selectedItemColor: Colors.black,
+                  unselectedItemColor: Colors.black54,
+                  selectedFontSize: 12,
+                  unselectedFontSize: 11,
+                  elevation: 0,
+                  items: controller.bottomItems,
+                ),
+              ),
+            ),
+          );
+        }),
+      ),
     );
   }
 

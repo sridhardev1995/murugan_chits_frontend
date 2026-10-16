@@ -1,7 +1,12 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 
+import 'package:sri_murugan_chits/screens/today_collection/today_collection_controller.dart';
+import 'package:sri_murugan_chits/services/api/api_servies.dart';
+import 'package:sri_murugan_chits/services/repositary/today_collection/today_collection_repository.dart';
 import 'package:sri_murugan_chits/utils/colors/app_colors.dart';
 import 'package:sri_murugan_chits/utils/global/app_text_style.dart';
 
@@ -17,68 +22,43 @@ class TodayCollectionScreen extends StatefulWidget {
 
 class _TodayCollectionScreenState
     extends State<TodayCollectionScreen> {
-  int selectedTab = 0;
+late TodayCollectionController controller;
 
-  // ============================================================
-  // TEMP DATA
-  // ============================================================
+@override
+void initState() {
+  super.initState();
 
-  final List<Map<String, dynamic>> diwaliCollections = [
-    {
-      'customerName': 'Ramesh Kumar',
-      'phone': '9876543210',
-      'week': 12,
-      'amount': 2000.0,
-      'remaining': 8000.0,
-      'paymentMode': 'Cash',
-      'time': '10:42 AM',
-      'receiptNumber': 'SMC-26-27-000125',
-    },
-    {
-      'customerName': 'Suresh',
-      'phone': '9876543211',
-      'week': 8,
-      'amount': 1000.0,
-      'remaining': 5000.0,
-      'paymentMode': 'UPI',
-      'time': '11:25 AM',
-      'receiptNumber': 'SMC-26-27-000126',
-    },
-  ];
+  if (!Get.isRegistered<ApiService>()) {
+    Get.put<ApiService>(
+      ApiService(),
+    );
+  }
 
-  final List<Map<String, dynamic>> emiCollections = [
-    {
-      'customerName': 'Priya',
-      'phone': '9876543212',
-      'week': 5,
-      'amount': 3000.0,
-      'remaining': 12000.0,
-      'paymentMode': 'UPI',
-      'time': '02:15 PM',
-      'receiptNumber': 'SMC-26-27-000127',
-    },
-    {
-      'customerName': 'Karthik',
-      'phone': '9876543213',
-      'week': 7,
-      'amount': 2500.0,
-      'remaining': 7500.0,
-      'paymentMode': 'Cash',
-      'time': '03:10 PM',
-      'receiptNumber': 'SMC-26-27-000128',
-    },
-  ];
+  if (!Get.isRegistered<TodayCollectionRepository>()) {
+    Get.put<TodayCollectionRepository>(
+      TodayCollectionRepository(
+        Get.find<ApiService>(),
+      ),
+    );
+  }
 
+  if (!Get.isRegistered<TodayCollectionController>()) {
+    Get.put<TodayCollectionController>(
+      TodayCollectionController(
+        Get.find<TodayCollectionRepository>(),
+      ),
+    );
+  }
+
+  controller =
+      Get.find<TodayCollectionController>();
+}
   // ============================================================
   // BUILD
   // ============================================================
 
   @override
   Widget build(BuildContext context) {
-    final collections = selectedTab == 0
-        ? diwaliCollections
-        : emiCollections;
-
     return Scaffold(
       backgroundColor: AppColors.scaffold,
 
@@ -92,59 +72,100 @@ class _TodayCollectionScreenState
         ),
 
         actions: [
-          IconButton(
-            onPressed: () {
-              setState(() {});
-            },
-            icon: const Icon(
-              Icons.refresh_rounded,
-              color: AppColors.black,
-            ),
+          Obx(
+            () => controller.isRefreshing.value
+                ? const Padding(
+                    padding: EdgeInsets.only(
+                      right: 16,
+                    ),
+                    child: SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: AppColors.black,
+                      ),
+                    ),
+                  )
+                : IconButton(
+                    onPressed: () {
+                      controller.refreshCollections();
+                    },
+                    icon: const Icon(
+                      Icons.refresh_rounded,
+                      color: AppColors.black,
+                    ),
+                  ),
           ),
         ],
       ),
 
-      body: RefreshIndicator(
-        color: AppColors.primary,
+      body: Obx(
+        () {
+          // ------------------------------------------------------
+          // INITIAL LOADING
+          // ------------------------------------------------------
 
-        onRefresh: () async {
-          setState(() {});
-        },
+          if (controller.isLoading.value &&
+              controller.diwaliCollections.isEmpty &&
+              controller.emiCollections.isEmpty) {
+            return _buildLoading();
+          }
 
-        child: ListView(
-          physics:
-              const AlwaysScrollableScrollPhysics(),
+          // ------------------------------------------------------
+          // ERROR
+          // ------------------------------------------------------
 
-          padding: const EdgeInsets.fromLTRB(
-            16,
-            16,
-            16,
-            24,
-          ),
+          if (controller.errorMessage.value.isNotEmpty &&
+              controller.diwaliCollections.isEmpty &&
+              controller.emiCollections.isEmpty) {
+            return _buildError();
+          }
 
-          children: [
-            _buildDateHeader(),
+          return RefreshIndicator(
+            color: AppColors.primary,
 
-            const SizedBox(height: 16),
+            onRefresh: () async {
+              await controller.refreshCollections();
+            },
 
-            _buildSummary(),
+            child: ListView(
+              physics:
+                  const AlwaysScrollableScrollPhysics(),
 
-            const SizedBox(height: 18),
-
-            _buildTabs(),
-
-            const SizedBox(height: 16),
-
-            if (collections.isEmpty)
-              _buildEmpty()
-            else
-              ...collections.map(
-                (item) => _buildCollectionCard(
-                  item,
-                ),
+              padding: const EdgeInsets.fromLTRB(
+                16,
+                16,
+                16,
+                30,
               ),
-          ],
-        ),
+
+              children: [
+                _buildDateHeader(),
+
+                const SizedBox(height: 14),
+
+                _buildLiveStatus(),
+
+                const SizedBox(height: 16),
+
+                _buildSummary(),
+
+                const SizedBox(height: 18),
+
+                _buildTabs(),
+
+                const SizedBox(height: 16),
+
+                _buildCollectionHeader(),
+
+                const SizedBox(height: 10),
+
+                _buildCollectionList(),
+              ],
+            ),
+          );
+        },
       ),
     );
   }
@@ -175,20 +196,21 @@ class _TodayCollectionScreenState
       child: Row(
         children: [
           Container(
-            width: 42,
-            height: 42,
+            width: 46,
+            height: 46,
 
             decoration: BoxDecoration(
               color: AppColors.primary
                   .withOpacity(0.12),
+
               borderRadius:
-                  BorderRadius.circular(10),
+                  BorderRadius.circular(11),
             ),
 
             child: const Icon(
               Icons.calendar_today_rounded,
               color: AppColors.black,
-              size: 20,
+              size: 21,
             ),
           ),
 
@@ -202,9 +224,11 @@ class _TodayCollectionScreenState
               children: [
                 Text(
                   'Collection Date',
-                  style: AppTextStyle.regularSmall
+                  style: AppTextStyle
+                      .regularSmall
                       .copyWith(
-                    color: Colors.grey.shade600,
+                    color:
+                        Colors.grey.shade600,
                   ),
                 ),
 
@@ -212,7 +236,8 @@ class _TodayCollectionScreenState
 
                 Text(
                   today,
-                  style: AppTextStyle.semiBoldLarge,
+                  style:
+                      AppTextStyle.semiBoldLarge,
                 ),
               ],
             ),
@@ -228,17 +253,105 @@ class _TodayCollectionScreenState
             decoration: BoxDecoration(
               color: Colors.green
                   .withOpacity(0.10),
+
               borderRadius:
                   BorderRadius.circular(8),
             ),
 
+            child: Row(
+              mainAxisSize:
+                  MainAxisSize.min,
+
+              children: [
+                Container(
+                  width: 6,
+                  height: 6,
+
+                  decoration:
+                      const BoxDecoration(
+                    color: Colors.green,
+                    shape: BoxShape.circle,
+                  ),
+                ),
+
+                const SizedBox(width: 5),
+
+                Text(
+                  'TODAY',
+                  style: AppTextStyle
+                      .semiBoldSmall
+                      .copyWith(
+                    color:
+                        Colors.green.shade700,
+                    fontSize: 10,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ============================================================
+  // LIVE STATUS
+  // ============================================================
+
+  Widget _buildLiveStatus() {
+    return Container(
+      padding:
+          const EdgeInsets.symmetric(
+        horizontal: 13,
+        vertical: 10,
+      ),
+
+      decoration: BoxDecoration(
+        color: Colors.green
+            .withOpacity(0.07),
+
+        borderRadius:
+            BorderRadius.circular(11),
+
+        border: Border.all(
+          color: Colors.green
+              .withOpacity(0.15),
+        ),
+      ),
+
+      child: Row(
+        children: [
+          Container(
+            width: 9,
+            height: 9,
+
+            decoration:
+                const BoxDecoration(
+              color: Colors.green,
+              shape: BoxShape.circle,
+            ),
+          ),
+
+          const SizedBox(width: 8),
+
+          Expanded(
             child: Text(
-              'TODAY',
+              'Live collection data',
               style: AppTextStyle.semiBoldSmall
                   .copyWith(
-                color: Colors.green.shade700,
-                fontSize: 10,
+                color:
+                    Colors.green.shade800,
               ),
+            ),
+          ),
+
+          Text(
+            'Auto refresh 20s',
+            style: AppTextStyle.regularSmall
+                .copyWith(
+              color:
+                  Colors.green.shade700,
+              fontSize: 10,
             ),
           ),
         ],
@@ -251,38 +364,6 @@ class _TodayCollectionScreenState
   // ============================================================
 
   Widget _buildSummary() {
-    final list = selectedTab == 0
-        ? diwaliCollections
-        : emiCollections;
-
-    final total = list.fold<double>(
-      0,
-      (sum, item) =>
-          sum + (item['amount'] as double),
-    );
-
-    final cash = list
-        .where(
-          (item) =>
-              item['paymentMode'] == 'Cash',
-        )
-        .fold<double>(
-          0,
-          (sum, item) =>
-              sum + (item['amount'] as double),
-        );
-
-    final upi = list
-        .where(
-          (item) =>
-              item['paymentMode'] == 'UPI',
-        )
-        .fold<double>(
-          0,
-          (sum, item) =>
-              sum + (item['amount'] as double),
-        );
-
     return Column(
       children: [
         Row(
@@ -290,7 +371,9 @@ class _TodayCollectionScreenState
             Expanded(
               child: _summaryCard(
                 title: 'Collected',
-                value: _currency(total),
+                value: _currency(
+                  controller.currentTabTotal,
+                ),
                 icon:
                     Icons.account_balance_wallet_rounded,
                 color: AppColors.black,
@@ -302,7 +385,8 @@ class _TodayCollectionScreenState
             Expanded(
               child: _summaryCard(
                 title: 'Transactions',
-                value: '${list.length}',
+                value:
+                    '${controller.currentTabCount}',
                 icon:
                     Icons.receipt_long_rounded,
                 color: Colors.blue,
@@ -318,8 +402,11 @@ class _TodayCollectionScreenState
             Expanded(
               child: _summaryCard(
                 title: 'Cash',
-                value: _currency(cash),
-                icon: Icons.payments_rounded,
+                value: _currency(
+                  controller.currentTabCash,
+                ),
+                icon:
+                    Icons.payments_rounded,
                 color: Colors.green,
               ),
             ),
@@ -329,8 +416,11 @@ class _TodayCollectionScreenState
             Expanded(
               child: _summaryCard(
                 title: 'UPI',
-                value: _currency(upi),
-                icon: Icons.qr_code_rounded,
+                value: _currency(
+                  controller.currentTabUpi,
+                ),
+                icon:
+                    Icons.qr_code_rounded,
                 color: Colors.deepPurple,
               ),
             ),
@@ -347,10 +437,12 @@ class _TodayCollectionScreenState
     required Color color,
   }) {
     return Container(
-      padding: const EdgeInsets.all(13),
+      padding:
+          const EdgeInsets.all(13),
 
       decoration: BoxDecoration(
         color: AppColors.white,
+
         borderRadius:
             BorderRadius.circular(14),
 
@@ -359,7 +451,8 @@ class _TodayCollectionScreenState
             color: AppColors.black
                 .withOpacity(0.035),
             blurRadius: 8,
-            offset: const Offset(0, 3),
+            offset:
+                const Offset(0, 3),
           ),
         ],
       ),
@@ -367,18 +460,20 @@ class _TodayCollectionScreenState
       child: Row(
         children: [
           Container(
-            width: 36,
-            height: 36,
+            width: 38,
+            height: 38,
 
             decoration: BoxDecoration(
-              color: color.withOpacity(0.10),
+              color:
+                  color.withOpacity(0.10),
+
               borderRadius:
                   BorderRadius.circular(9),
             ),
 
             child: Icon(
               icon,
-              size: 18,
+              size: 19,
               color: color,
             ),
           ),
@@ -396,9 +491,11 @@ class _TodayCollectionScreenState
                   maxLines: 1,
                   overflow:
                       TextOverflow.ellipsis,
-                  style: AppTextStyle.semiBold
-                      .copyWith(
-                    fontSize: 13,
+
+                  style:
+                      AppTextStyle.semiBold
+                          .copyWith(
+                    fontSize: 14,
                     color: color,
                   ),
                 ),
@@ -407,10 +504,12 @@ class _TodayCollectionScreenState
 
                 Text(
                   title,
-                  style: AppTextStyle.regularSmall
-                      .copyWith(
+                  style:
+                      AppTextStyle.regularSmall
+                          .copyWith(
                     fontSize: 10,
-                    color: Colors.grey.shade600,
+                    color:
+                        Colors.grey.shade600,
                   ),
                 ),
               ],
@@ -426,65 +525,77 @@ class _TodayCollectionScreenState
   // ============================================================
 
   Widget _buildTabs() {
-    return Row(
-      children: [
-        Expanded(
-          child: _tabButton(
-            title: 'Diwali',
-            index: 0,
-            icon: Icons.card_giftcard_rounded,
+    return Obx(
+      () => Row(
+        children: [
+          Expanded(
+            child: _tabButton(
+              title: 'Diwali',
+              index: 0,
+              count:
+                  controller.diwaliCollections.length,
+              icon:
+                  Icons.card_giftcard_rounded,
+            ),
           ),
-        ),
 
-        const SizedBox(width: 10),
+          const SizedBox(width: 10),
 
-        Expanded(
-          child: _tabButton(
-            title: 'EMI',
-            index: 1,
-            icon:
-                Icons.account_balance_wallet_rounded,
+          Expanded(
+            child: _tabButton(
+              title: 'EMI',
+              index: 1,
+              count:
+                  controller.emiCollections.length,
+              icon:
+                  Icons.account_balance_wallet_rounded,
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
   Widget _tabButton({
     required String title,
     required int index,
+    required int count,
     required IconData icon,
   }) {
     final selected =
-        selectedTab == index;
+        controller.selectedTab.value ==
+            index;
+
+    final color = index == 0
+        ? AppColors.primary
+        : Colors.blue;
 
     return InkWell(
       borderRadius:
-          BorderRadius.circular(11),
+          BorderRadius.circular(12),
 
       onTap: () {
-        setState(() {
-          selectedTab = index;
-        });
+        controller.changeTab(index);
       },
 
       child: Container(
         padding:
             const EdgeInsets.symmetric(
           vertical: 12,
+          horizontal: 10,
         ),
 
         decoration: BoxDecoration(
           color: selected
-              ? AppColors.primary
+              ? color
               : AppColors.white,
 
           borderRadius:
-              BorderRadius.circular(11),
+              BorderRadius.circular(12),
 
           border: Border.all(
             color: selected
-                ? AppColors.black
+                ? color
                 : Colors.grey.shade300,
           ),
         ),
@@ -502,20 +613,128 @@ class _TodayCollectionScreenState
                   : Colors.grey.shade700,
             ),
 
-            const SizedBox(width: 7),
+            const SizedBox(width: 6),
 
             Text(
               title,
-              style: AppTextStyle.semiBold
-                  .copyWith(
+              style:
+                  AppTextStyle.semiBold.copyWith(
+                color:
+                    AppColors.black,
+              ),
+            ),
+
+            const SizedBox(width: 7),
+
+            Container(
+              padding:
+                  const EdgeInsets.symmetric(
+                horizontal: 7,
+                vertical: 2,
+              ),
+
+              decoration: BoxDecoration(
                 color: selected
                     ? AppColors.black
-                    : AppColors.black,
+                        .withOpacity(0.10)
+                    : Colors.grey.shade100,
+
+                borderRadius:
+                    BorderRadius.circular(10),
+              ),
+
+              child: Text(
+                '$count',
+                style:
+                    AppTextStyle.semiBoldSmall
+                        .copyWith(
+                  fontSize: 10,
+                ),
               ),
             ),
           ],
         ),
       ),
+    );
+  }
+
+  // ============================================================
+  // COLLECTION HEADER
+  // ============================================================
+
+  Widget _buildCollectionHeader() {
+    final isDiwali =
+        controller.selectedTab.value == 0;
+
+    final count =
+        controller.currentTabCount;
+
+    return Row(
+      children: [
+        Expanded(
+          child: Column(
+            crossAxisAlignment:
+                CrossAxisAlignment.start,
+
+            children: [
+              Text(
+                isDiwali
+                    ? 'Diwali Collections'
+                    : 'EMI Collections',
+                style:
+                    AppTextStyle.semiBoldLarge
+                        .copyWith(
+                  fontSize: 16,
+                ),
+              ),
+
+              const SizedBox(height: 2),
+
+              Text(
+                '$count transaction${count == 1 ? '' : 's'} collected today',
+                style:
+                    AppTextStyle.regularSmall
+                        .copyWith(
+                  color:
+                      Colors.grey.shade600,
+                ),
+              ),
+            ],
+          ),
+        ),
+
+        if (controller.isRefreshing.value)
+          const SizedBox(
+            width: 18,
+            height: 18,
+            child:
+                CircularProgressIndicator(
+              strokeWidth: 2,
+            ),
+          ),
+      ],
+    );
+  }
+
+  // ============================================================
+  // COLLECTION LIST
+  // ============================================================
+
+  Widget _buildCollectionList() {
+    final collections =
+        controller.currentCollections;
+
+    if (collections.isEmpty) {
+      return _buildEmpty();
+    }
+
+    return Column(
+      children: collections
+          .map(
+            (item) =>
+                _buildCollectionCard(item),
+          )
+          .toList(),
     );
   }
 
@@ -526,17 +745,75 @@ class _TodayCollectionScreenState
   Widget _buildCollectionCard(
     Map<String, dynamic> item,
   ) {
-    final isDiwali = selectedTab == 0;
+    final isDiwali =
+        controller.selectedTab.value == 0;
 
     final accent = isDiwali
         ? AppColors.primary
         : Colors.blue;
 
+    final customerName =
+        _stringValue(
+      item['customer_name'],
+      fallback: 'Unknown Customer',
+    );
+
+    final phone =
+        _stringValue(
+      item['customer_phone'],
+      fallback: '-',
+    );
+
+    final amount =
+        _toDouble(item['amount']);
+
+    final remaining =
+        _toDouble(
+      item['remaining_balance'],
+    );
+
+    final paymentMode =
+        _stringValue(
+      item['payment_mode'],
+      fallback: '-',
+    );
+
+    final receiptNumber =
+        _stringValue(
+      item['receipt_number'],
+      fallback: 'Receipt not available',
+    );
+
+    final paymentTime =
+        _stringValue(
+      item['payment_time'],
+      fallback: '-',
+    );
+
+    final week = isDiwali
+        ? _stringValue(
+            item['week_number'],
+            fallback: '-',
+          )
+        : _stringValue(
+            item['week_no'],
+            fallback: '-',
+          );
+
+    final schemeName =
+        isDiwali
+            ? 'Diwali Chit'
+            : _stringValue(
+                item['scheme_name'],
+                fallback: 'EMI',
+              );
+
     return Container(
       margin:
           const EdgeInsets.only(bottom: 12),
 
-      padding: const EdgeInsets.all(15),
+      padding:
+          const EdgeInsets.all(15),
 
       decoration: BoxDecoration(
         color: AppColors.white,
@@ -553,7 +830,8 @@ class _TodayCollectionScreenState
             color: AppColors.black
                 .withOpacity(0.035),
             blurRadius: 8,
-            offset: const Offset(0, 3),
+            offset:
+                const Offset(0, 3),
           ),
         ],
       ),
@@ -564,14 +842,14 @@ class _TodayCollectionScreenState
 
         children: [
           // ------------------------------------------------------
-          // CUSTOMER
+          // CUSTOMER HEADER
           // ------------------------------------------------------
 
           Row(
             children: [
               Container(
-                width: 44,
-                height: 44,
+                width: 46,
+                height: 46,
 
                 decoration: BoxDecoration(
                   color:
@@ -581,11 +859,12 @@ class _TodayCollectionScreenState
 
                 child: Icon(
                   isDiwali
-                      ? Icons.card_giftcard_rounded
+                      ? Icons
+                          .card_giftcard_rounded
                       : Icons
                           .account_balance_wallet_rounded,
                   color: accent,
-                  size: 21,
+                  size: 22,
                 ),
               ),
 
@@ -598,14 +877,15 @@ class _TodayCollectionScreenState
 
                   children: [
                     Text(
-                      item['customerName']
-                          .toString(),
+                      customerName,
                       maxLines: 1,
                       overflow:
                           TextOverflow.ellipsis,
-                      style: AppTextStyle
-                          .semiBoldLarge
-                          .copyWith(
+
+                      style:
+                          AppTextStyle
+                              .semiBoldLarge
+                              .copyWith(
                         fontSize: 15,
                       ),
                     ),
@@ -623,10 +903,11 @@ class _TodayCollectionScreenState
                         const SizedBox(width: 4),
 
                         Text(
-                          item['phone'].toString(),
-                          style: AppTextStyle
-                              .regularSmall
-                              .copyWith(
+                          phone,
+                          style:
+                              AppTextStyle
+                                  .regularSmall
+                                  .copyWith(
                             color:
                                 Colors.grey.shade600,
                           ),
@@ -647,15 +928,19 @@ class _TodayCollectionScreenState
                 decoration: BoxDecoration(
                   color:
                       accent.withOpacity(0.10),
+
                   borderRadius:
                       BorderRadius.circular(8),
                 ),
 
                 child: Text(
-                  isDiwali ? 'DIWALI' : 'EMI',
-                  style: AppTextStyle
-                      .semiBoldSmall
-                      .copyWith(
+                  isDiwali
+                      ? 'DIWALI'
+                      : 'EMI',
+                  style:
+                      AppTextStyle
+                          .semiBoldSmall
+                          .copyWith(
                     color: accent,
                     fontSize: 10,
                   ),
@@ -667,7 +952,7 @@ class _TodayCollectionScreenState
           const SizedBox(height: 14),
 
           // ------------------------------------------------------
-          // WEEK / PAYMENT MODE / TIME
+          // TRANSACTION INFORMATION
           // ------------------------------------------------------
 
           Container(
@@ -684,12 +969,12 @@ class _TodayCollectionScreenState
               children: [
                 Expanded(
                   child: _detailItem(
-                    icon: Icons.numbers_rounded,
+                    icon:
+                        Icons.numbers_rounded,
                     label: isDiwali
                         ? 'Week'
                         : 'EMI Week',
-                    value:
-                        '${item['week']}',
+                    value: week,
                   ),
                 ),
 
@@ -698,9 +983,7 @@ class _TodayCollectionScreenState
                     icon:
                         Icons.payments_outlined,
                     label: 'Payment',
-                    value:
-                        item['paymentMode']
-                            .toString(),
+                    value: paymentMode,
                   ),
                 ),
 
@@ -709,18 +992,17 @@ class _TodayCollectionScreenState
                     icon:
                         Icons.access_time_rounded,
                     label: 'Time',
-                    value:
-                        item['time'].toString(),
+                    value: paymentTime,
                   ),
                 ),
               ],
             ),
           ),
 
-          const SizedBox(height: 12),
+          const SizedBox(height: 13),
 
           // ------------------------------------------------------
-          // AMOUNTS
+          // AMOUNT SECTION
           // ------------------------------------------------------
 
           Row(
@@ -728,59 +1010,120 @@ class _TodayCollectionScreenState
               Expanded(
                 child: _amountItem(
                   label: 'Paid Today',
-                  value:
-                      item['amount'] as double,
+                  value: amount,
                   color: Colors.green,
+                  icon:
+                      Icons.check_circle_outline,
                 ),
               ),
 
+              Container(
+                width: 1,
+                height: 42,
+                color:
+                    Colors.grey.shade200,
+              ),
+
               Expanded(
-                child: _amountItem(
-                  label: 'Remaining',
-                  value:
-                      item['remaining'] as double,
-                  color: Colors.red,
+                child: Padding(
+                  padding:
+                      const EdgeInsets.only(
+                    left: 15,
+                  ),
+                  child: _amountItem(
+                    label: 'Remaining',
+                    value: remaining,
+                    color: Colors.red,
+                    icon:
+                        Icons.pending_actions_rounded,
+                  ),
                 ),
               ),
             ],
           ),
 
-          const SizedBox(height: 12),
+          const SizedBox(height: 13),
 
           // ------------------------------------------------------
           // RECEIPT
           // ------------------------------------------------------
 
-          Row(
-            children: [
-              const Icon(
-                Icons.receipt_long_outlined,
-                size: 15,
-                color: Colors.grey,
-              ),
+          Container(
+            padding:
+                const EdgeInsets.symmetric(
+              horizontal: 10,
+              vertical: 9,
+            ),
 
-              const SizedBox(width: 5),
+            decoration: BoxDecoration(
+              color: Colors.grey
+                  .withOpacity(0.06),
 
-              Text(
-                item['receiptNumber'].toString(),
-                style: AppTextStyle.regularSmall
-                    .copyWith(
-                  color: Colors.grey.shade700,
+              borderRadius:
+                  BorderRadius.circular(9),
+            ),
+
+            child: Row(
+              children: [
+                const Icon(
+                  Icons.receipt_long_outlined,
+                  size: 16,
+                  color: Colors.grey,
                 ),
-              ),
 
-              const Spacer(),
+                const SizedBox(width: 6),
 
-              TextButton(
-                onPressed: () {
-                  _showCollectionDetails(item);
-                },
-                child: const Text(
-                  'View Details',
-                  style: AppTextStyle.semiBold,
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment:
+                        CrossAxisAlignment.start,
+
+                    children: [
+                      Text(
+                        'Receipt Number',
+                        style:
+                            AppTextStyle
+                                .regularSmall
+                                .copyWith(
+                          fontSize: 9,
+                          color:
+                              Colors.grey.shade600,
+                        ),
+                      ),
+
+                      const SizedBox(height: 2),
+
+                      Text(
+                        receiptNumber,
+                        maxLines: 1,
+                        overflow:
+                            TextOverflow.ellipsis,
+                        style:
+                            AppTextStyle
+                                .semiBoldSmall
+                                .copyWith(
+                          fontSize: 11,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-            ],
+
+                TextButton(
+                  onPressed: () {
+                    _showCollectionDetails(
+                      item,
+                    );
+                  },
+
+                  child: const Text(
+                    'View Details',
+                    style:
+                        AppTextStyle.semiBold,
+                  ),
+                ),
+              ],
+            ),
           ),
         ],
       ),
@@ -806,16 +1149,19 @@ class _TodayCollectionScreenState
             Icon(
               icon,
               size: 13,
-              color: Colors.grey.shade600,
+              color:
+                  Colors.grey.shade600,
             ),
 
             const SizedBox(width: 4),
 
             Text(
               label,
-              style: AppTextStyle.regularSmall
-                  .copyWith(
-                color: Colors.grey.shade600,
+              style:
+                  AppTextStyle.regularSmall
+                      .copyWith(
+                color:
+                    Colors.grey.shade600,
                 fontSize: 10,
               ),
             ),
@@ -829,6 +1175,7 @@ class _TodayCollectionScreenState
           maxLines: 1,
           overflow:
               TextOverflow.ellipsis,
+
           style:
               AppTextStyle.semiBoldSmall,
         ),
@@ -844,26 +1191,41 @@ class _TodayCollectionScreenState
     required String label,
     required double value,
     required Color color,
+    required IconData icon,
   }) {
     return Column(
       crossAxisAlignment:
           CrossAxisAlignment.start,
 
       children: [
-        Text(
-          label,
-          style: AppTextStyle.regularSmall
-              .copyWith(
-            color: Colors.grey.shade600,
-          ),
+        Row(
+          children: [
+            Icon(
+              icon,
+              size: 14,
+              color: color,
+            ),
+
+            const SizedBox(width: 4),
+
+            Text(
+              label,
+              style:
+                  AppTextStyle.regularSmall
+                      .copyWith(
+                color:
+                    Colors.grey.shade600,
+              ),
+            ),
+          ],
         ),
 
         const SizedBox(height: 3),
 
         Text(
           _currency(value),
-          style: AppTextStyle.semiBold
-              .copyWith(
+          style:
+              AppTextStyle.semiBold.copyWith(
             color: color,
             fontSize: 15,
           ),
@@ -879,104 +1241,344 @@ class _TodayCollectionScreenState
   void _showCollectionDetails(
     Map<String, dynamic> item,
   ) {
-    final isDiwali = selectedTab == 0;
+    final isDiwali =
+        controller.selectedTab.value == 0;
+
+    final customerName =
+        _stringValue(
+      item['customer_name'],
+      fallback: 'Unknown Customer',
+    );
+
+    final phone =
+        _stringValue(
+      item['customer_phone'],
+      fallback: '-',
+    );
+
+    final amount =
+        _toDouble(item['amount']);
+
+    final remaining =
+        _toDouble(
+      item['remaining_balance'],
+    );
+
+    final paymentMode =
+        _stringValue(
+      item['payment_mode'],
+      fallback: '-',
+    );
+
+    final paymentTime =
+        _stringValue(
+      item['payment_time'],
+      fallback: '-',
+    );
+
+    final receiptNumber =
+        _stringValue(
+      item['receipt_number'],
+      fallback: '-',
+    );
+
+    final week = isDiwali
+        ? _stringValue(
+            item['week_number'],
+            fallback: '-',
+          )
+        : _stringValue(
+            item['week_no'],
+            fallback: '-',
+          );
+
+    final scheme = isDiwali
+        ? 'Diwali Chit'
+        : _stringValue(
+            item['scheme_name'],
+            fallback: 'EMI',
+          );
 
     Get.dialog(
-      AlertDialog(
-        backgroundColor: AppColors.white,
+      Dialog(
+        backgroundColor:
+            Colors.transparent,
 
-        title: const Text(
-          'Collection Details',
-          style: AppTextStyle.heading,
+        insetPadding:
+            const EdgeInsets.symmetric(
+          horizontal: 20,
+          vertical: 24,
         ),
 
-        content: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment:
-                CrossAxisAlignment.start,
+        child: Container(
+          padding:
+              const EdgeInsets.all(20),
 
-            children: [
-              _dialogRow(
-                'Customer',
-                item['customerName']
-                    .toString(),
-              ),
+          decoration: BoxDecoration(
+            color: AppColors.white,
 
-              _dialogRow(
-                'Mobile',
-                item['phone'].toString(),
-              ),
-
-              _dialogRow(
-                'Scheme',
-                isDiwali
-                    ? 'Diwali Chit'
-                    : 'EMI',
-              ),
-
-              _dialogRow(
-                isDiwali
-                    ? 'Week'
-                    : 'EMI Week',
-                item['week'].toString(),
-              ),
-
-              _dialogRow(
-                'Paid Today',
-                _currency(
-                  item['amount'] as double,
-                ),
-              ),
-
-              _dialogRow(
-                'Remaining',
-                _currency(
-                  item['remaining'] as double,
-                ),
-              ),
-
-              _dialogRow(
-                'Payment Mode',
-                item['paymentMode']
-                    .toString(),
-              ),
-
-              _dialogRow(
-                'Collection Time',
-                item['time'].toString(),
-              ),
-
-              _dialogRow(
-                'Receipt Number',
-                item['receiptNumber']
-                    .toString(),
-              ),
-            ],
+            borderRadius:
+                BorderRadius.circular(20),
           ),
-        ),
 
-        actions: [
-          TextButton(
-            onPressed: () {
-              Get.back();
-            },
-            child: const Text(
-              'Close',
-              style: AppTextStyle.semiBold,
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment:
+                  CrossAxisAlignment.start,
+
+              children: [
+                // ------------------------------------------------
+                // HEADER
+                // ------------------------------------------------
+
+                Row(
+                  children: [
+                    Container(
+                      width: 44,
+                      height: 44,
+
+                      decoration: BoxDecoration(
+                        color: AppColors.primary
+                            .withOpacity(0.10),
+                        borderRadius:
+                            BorderRadius.circular(
+                          11,
+                        ),
+                      ),
+
+                      child: const Icon(
+                        Icons
+                            .receipt_long_rounded,
+                        color:
+                            AppColors.black,
+                      ),
+                    ),
+
+                    const SizedBox(width: 11),
+
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment:
+                            CrossAxisAlignment.start,
+
+                        children: [
+                          const Text(
+                            'Collection Details',
+                            style:
+                                AppTextStyle
+                                    .heading,
+                          ),
+
+                          const SizedBox(
+                            height: 2,
+                          ),
+
+                          Text(
+                            isDiwali
+                                ? 'Diwali Payment'
+                                : 'EMI Payment',
+                            style:
+                                AppTextStyle
+                                    .regularSmall
+                                    .copyWith(
+                              color: Colors
+                                  .grey
+                                  .shade600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    IconButton(
+                      onPressed: () {
+                        Get.back();
+                      },
+                      icon: const Icon(
+                        Icons.close_rounded,
+                      ),
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 18),
+
+                // ------------------------------------------------
+                // PAID AMOUNT
+                // ------------------------------------------------
+
+                Container(
+                  width: double.infinity,
+                  padding:
+                      const EdgeInsets.all(16),
+
+                  decoration: BoxDecoration(
+                    color: Colors.green
+                        .withOpacity(0.07),
+
+                    borderRadius:
+                        BorderRadius.circular(
+                      13,
+                    ),
+
+                    border: Border.all(
+                      color: Colors.green
+                          .withOpacity(0.15),
+                    ),
+                  ),
+
+                  child: Column(
+                    children: [
+                      Text(
+                        'Paid Today',
+                        style: AppTextStyle
+                            .regularSmall
+                            .copyWith(
+                          color: Colors
+                              .grey
+                              .shade700,
+                        ),
+                      ),
+
+                      const SizedBox(
+                        height: 4,
+                      ),
+
+                      Text(
+                        _currency(amount),
+                        style: AppTextStyle
+                            .semiBold
+                            .copyWith(
+                          fontSize: 25,
+                          color: Colors
+                              .green
+                              .shade700,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: 16),
+
+                // ------------------------------------------------
+                // DETAILS
+                // ------------------------------------------------
+
+                _dialogRow(
+                  'Customer',
+                  customerName,
+                ),
+
+                _dialogRow(
+                  'Mobile',
+                  phone,
+                ),
+
+                _dialogRow(
+                  'Scheme',
+                  scheme,
+                ),
+
+                _dialogRow(
+                  isDiwali
+                      ? 'Week'
+                      : 'EMI Week',
+                  week,
+                ),
+
+                _dialogRow(
+                  'Payment Mode',
+                  paymentMode,
+                ),
+
+                _dialogRow(
+                  'Collection Time',
+                  paymentTime,
+                ),
+
+                _dialogRow(
+                  'Remaining',
+                  _currency(remaining),
+                  valueColor:
+                      Colors.red.shade700,
+                ),
+
+                _dialogRow(
+                  'Receipt Number',
+                  receiptNumber,
+                  valueColor:
+                      AppColors.black,
+                ),
+
+                const SizedBox(height: 10),
+
+                // ------------------------------------------------
+                // CLOSE
+                // ------------------------------------------------
+
+                SizedBox(
+                  width: double.infinity,
+
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Get.back();
+                    },
+
+                    style:
+                        ElevatedButton.styleFrom(
+                      backgroundColor:
+                          AppColors.primary,
+
+                      foregroundColor:
+                          AppColors.black,
+
+                      elevation: 0,
+
+                      padding:
+                          const EdgeInsets
+                              .symmetric(
+                        vertical: 13,
+                      ),
+
+                      shape:
+                          RoundedRectangleBorder(
+                        borderRadius:
+                            BorderRadius.circular(
+                          11,
+                        ),
+                      ),
+                    ),
+
+                    child: const Text(
+                      'Close',
+                      style:
+                          AppTextStyle.semiBold,
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
-        ],
+        ),
       ),
     );
   }
 
+  // ============================================================
+  // DIALOG ROW
+  // ============================================================
+
   Widget _dialogRow(
     String label,
-    String value,
-  ) {
+    String value, {
+    Color? valueColor,
+  }) {
     return Padding(
       padding:
-          const EdgeInsets.only(bottom: 10),
+          const EdgeInsets.only(
+        bottom: 12,
+      ),
 
       child: Row(
         crossAxisAlignment:
@@ -985,22 +1587,214 @@ class _TodayCollectionScreenState
         children: [
           SizedBox(
             width: 115,
+
             child: Text(
               label,
-              style: AppTextStyle.regularSmall
-                  .copyWith(
-                color: Colors.grey.shade600,
+              style:
+                  AppTextStyle.regularSmall
+                      .copyWith(
+                color:
+                    Colors.grey.shade600,
               ),
             ),
           ),
 
+          const SizedBox(width: 8),
+
           Expanded(
             child: Text(
               value,
-              style: AppTextStyle.semiBold,
+              textAlign:
+                  TextAlign.right,
+
+              style:
+                  AppTextStyle.semiBold
+                      .copyWith(
+                color:
+                    valueColor ??
+                        AppColors.black,
+              ),
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  // ============================================================
+  // LOADING
+  // ============================================================
+
+  Widget _buildLoading() {
+    return ListView(
+      physics:
+          const AlwaysScrollableScrollPhysics(),
+
+      padding:
+          const EdgeInsets.all(16),
+
+      children: [
+        _loadingBox(
+          height: 76,
+        ),
+
+        const SizedBox(height: 14),
+
+        Row(
+          children: [
+            Expanded(
+              child: _loadingBox(
+                height: 72,
+              ),
+            ),
+
+            const SizedBox(width: 10),
+
+            Expanded(
+              child: _loadingBox(
+                height: 72,
+              ),
+            ),
+          ],
+        ),
+
+        const SizedBox(height: 10),
+
+        Row(
+          children: [
+            Expanded(
+              child: _loadingBox(
+                height: 72,
+              ),
+            ),
+
+            const SizedBox(width: 10),
+
+            Expanded(
+              child: _loadingBox(
+                height: 72,
+              ),
+            ),
+          ],
+        ),
+
+        const SizedBox(height: 18),
+
+        _loadingBox(
+          height: 50,
+        ),
+
+        const SizedBox(height: 14),
+
+        _loadingBox(
+          height: 190,
+        ),
+
+        const SizedBox(height: 12),
+
+        _loadingBox(
+          height: 190,
+        ),
+      ],
+    );
+  }
+
+  Widget _loadingBox({
+    required double height,
+  }) {
+    return Container(
+      height: height,
+
+      decoration: BoxDecoration(
+        color: Colors.grey.shade200,
+        borderRadius:
+            BorderRadius.circular(14),
+      ),
+    );
+  }
+
+  // ============================================================
+  // ERROR
+  // ============================================================
+
+  Widget _buildError() {
+    return Center(
+      child: Padding(
+        padding:
+            const EdgeInsets.all(24),
+
+        child: Column(
+          mainAxisAlignment:
+              MainAxisAlignment.center,
+
+          children: [
+            Container(
+              width: 70,
+              height: 70,
+
+              decoration: BoxDecoration(
+                color: Colors.red
+                    .withOpacity(0.08),
+                shape: BoxShape.circle,
+              ),
+
+              child: const Icon(
+                Icons
+                    .cloud_off_rounded,
+                size: 34,
+                color: Colors.red,
+              ),
+            ),
+
+            const SizedBox(height: 16),
+
+            const Text(
+              'Unable to load collections',
+              textAlign: TextAlign.center,
+              style:
+                  AppTextStyle.semiBoldLarge,
+            ),
+
+            const SizedBox(height: 7),
+
+            Text(
+              controller.errorMessage.value,
+              textAlign: TextAlign.center,
+
+              style:
+                  AppTextStyle.regularSmall
+                      .copyWith(
+                color:
+                    Colors.grey.shade600,
+              ),
+            ),
+
+            const SizedBox(height: 18),
+
+            ElevatedButton.icon(
+              onPressed: () {
+                controller.loadTodayCollections();
+              },
+
+              icon: const Icon(
+                Icons.refresh_rounded,
+              ),
+
+              label: const Text(
+                'Retry',
+              ),
+
+              style:
+                  ElevatedButton.styleFrom(
+                backgroundColor:
+                    AppColors.primary,
+                foregroundColor:
+                    AppColors.black,
+                elevation: 0,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -1010,17 +1804,20 @@ class _TodayCollectionScreenState
   // ============================================================
 
   Widget _buildEmpty() {
+    final isDiwali =
+        controller.selectedTab.value == 0;
+
     return Padding(
       padding:
           const EdgeInsets.symmetric(
-        vertical: 70,
+        vertical: 65,
       ),
 
       child: Column(
         children: [
           Container(
-            width: 70,
-            height: 70,
+            width: 74,
+            height: 74,
 
             decoration: BoxDecoration(
               color: AppColors.primary
@@ -1029,30 +1826,70 @@ class _TodayCollectionScreenState
             ),
 
             child: const Icon(
-              Icons.receipt_long_outlined,
-              size: 36,
+              Icons
+                  .receipt_long_outlined,
+              size: 37,
               color: AppColors.primary,
             ),
           ),
 
           const SizedBox(height: 16),
 
-          const Text(
+          Text(
             'No collections today',
             style:
                 AppTextStyle.semiBoldLarge,
           ),
 
-          const SizedBox(height: 6),
+          const SizedBox(height: 7),
 
           Text(
-            selectedTab == 0
+            isDiwali
                 ? 'No Diwali payments collected today.'
                 : 'No EMI payments collected today.',
             textAlign: TextAlign.center,
-            style: AppTextStyle.regularSmall
-                .copyWith(
-              color: Colors.grey.shade600,
+
+            style:
+                AppTextStyle.regularSmall
+                    .copyWith(
+              color:
+                  Colors.grey.shade600,
+            ),
+          ),
+
+          const SizedBox(height: 16),
+
+          OutlinedButton.icon(
+            onPressed: () {
+              controller.refreshCollections();
+            },
+
+            icon: const Icon(
+              Icons.refresh_rounded,
+              size: 18,
+            ),
+
+            label: const Text(
+              'Refresh',
+            ),
+
+            style:
+                OutlinedButton.styleFrom(
+              foregroundColor:
+                  AppColors.black,
+
+              side: BorderSide(
+                color:
+                    Colors.grey.shade300,
+              ),
+
+              shape:
+                  RoundedRectangleBorder(
+                borderRadius:
+                    BorderRadius.circular(
+                  10,
+                ),
+              ),
             ),
           ),
         ],
@@ -1061,8 +1898,42 @@ class _TodayCollectionScreenState
   }
 
   // ============================================================
-  // CURRENCY
+  // HELPERS
   // ============================================================
+
+  String _stringValue(
+    dynamic value, {
+    String fallback = '-',
+  }) {
+    if (value == null) {
+      return fallback;
+    }
+
+    final text =
+        value.toString().trim();
+
+    if (text.isEmpty ||
+        text == 'null') {
+      return fallback;
+    }
+
+    return text;
+  }
+
+  double _toDouble(dynamic value) {
+    if (value == null) {
+      return 0;
+    }
+
+    if (value is num) {
+      return value.toDouble();
+    }
+
+    return double.tryParse(
+          value.toString(),
+        ) ??
+        0;
+  }
 
   String _currency(double amount) {
     return NumberFormat.currency(

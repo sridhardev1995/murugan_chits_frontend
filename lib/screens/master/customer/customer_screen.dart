@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:sri_murugan_chits/models/customers/customer_model.dart';
+import 'package:sri_murugan_chits/utils/colors/app_colors.dart';
 import 'package:sri_murugan_chits/utils/colors/app_gradients.dart';
 import 'package:sri_murugan_chits/utils/global/app_text_style.dart';
 import 'customer_controller.dart';
@@ -26,10 +27,10 @@ class CustomerView extends GetView<CustomerController> {
         foregroundColor: const Color(0xFF1F2937),
       ),
       floatingActionButton: FloatingActionButton.extended(
-        backgroundColor: const Color(0xFF2563EB),
+        backgroundColor: AppColors.primary,
         onPressed: () => Get.to(() => const CustomerFormView()),
-        icon: const Icon(Icons.add),
-        label: Text('Add Customer', style: AppTextStyle.button),
+        icon: const Icon(Icons.add,color: AppColors.black,),
+        label: Text('Add', style: AppTextStyle.button.copyWith(color: AppColors.black),),
       ),
       body: SafeArea(
         child: Column(

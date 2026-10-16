@@ -10,40 +10,30 @@ import 'package:sri_murugan_chits/services/api/storage_service.dart';
 class AuthController extends GetxController {
   final ApiService apiService = ApiService();
 
-  // ============================================================
-  // LOADING STATE
-  // ============================================================
-
   final RxBool isLoading = false.obs;
-
-  // ============================================================
-  // PASSWORD VISIBILITY
-  // ============================================================
 
   final RxBool isPasswordVisible = false.obs;
 
-  // ============================================================
-  // LOGGED-IN USER
-  // ============================================================
-
-  final Rx<UserModel?> user = Rx<UserModel?>(null);
+  final Rx<UserModel?> user =
+      Rx<UserModel?>(null);
 
   // ============================================================
   // LOGIN
   // ============================================================
 
-  Future<void> login(String email, String password) async {
-    // Validate email
+  Future<void> login(
+    String email,
+    String password,
+  ) async {
     if (email.isEmpty) {
       Get.snackbar(
         "Login Failed",
-        "Please enter email",
+        "Please enter username",
         snackPosition: SnackPosition.BOTTOM,
       );
       return;
     }
 
-    // Validate password
     if (password.isEmpty) {
       Get.snackbar(
         "Login Failed",
@@ -54,50 +44,113 @@ class AuthController extends GetxController {
     }
 
     try {
-      // Start loading
       isLoading.value = true;
-
-      // ========================================================
-      // API REQUEST
-      // ========================================================
 
       final response = await apiService.post(
         ApiConstants.login,
-        data: {"username": email, "password": password},
+        data: {
+          "username": email,
+          "password": password,
+        },
       );
 
-      // Debug response
-      debugPrint("========== LOGIN RESPONSE ==========");
-      debugPrint("STATUS CODE: ${response.statusCode}");
-      debugPrint("RESPONSE DATA: ${response.data}");
+      debugPrint(
+        "========== LOGIN RESPONSE ==========",
+      );
+
+      debugPrint(
+        "STATUS CODE: ${response.statusCode}",
+      );
+
+      debugPrint(
+        "RESPONSE DATA: ${response.data}",
+      );
 
       // ========================================================
-      // CHECK SUCCESS
+      // LOGIN SUCCESS
       // ========================================================
 
       if (response.data["success"] == true) {
-        // ======================================================
-        // GET TOKEN
-        // ======================================================
-
-        final String token = response.data["token"].toString();
-
-        debugPrint("TOKEN RECEIVED: $token");
+        final String token =
+            response.data["token"]?.toString() ?? "";
 
         // ======================================================
-        // SAVE TOKEN TO HIVE
+        // TOKEN VALIDATION
         // ======================================================
 
-        await StorageService.saveToken(token);
-
-        debugPrint("TOKEN SAVED SUCCESSFULLY");
+        if (token.isEmpty) {
+          Get.snackbar(
+            "Login Failed",
+            "Token was not received from server",
+            snackPosition: SnackPosition.BOTTOM,
+          );
+          return;
+        }
 
         // ======================================================
-        // GET USER
+        // ADMIN DATA
         // ======================================================
 
-        if (response.data["user"] != null) {
-          user.value = UserModel.fromJson(response.data["user"]);
+        final admin =
+            response.data["admin"];
+
+        final int? adminId =
+            admin?["id"] is int
+                ? admin["id"]
+                : int.tryParse(
+                    admin?["id"]?.toString() ?? "",
+                  );
+
+        final String? username =
+            admin?["username"]?.toString();
+
+        // ======================================================
+        // SAVE SESSION
+        // ======================================================
+
+        await StorageService.saveSession(
+          token: token,
+          adminId: adminId,
+          username: username,
+        );
+
+        // ======================================================
+        // VERIFY TOKEN
+        // ======================================================
+
+        final savedToken =
+            await StorageService.getToken();
+
+        debugPrint(
+          "========== TOKEN CHECK ==========",
+        );
+
+        debugPrint(
+          "TOKEN RECEIVED: ${token.isNotEmpty}",
+        );
+
+        debugPrint(
+          "TOKEN SAVED: "
+          "${savedToken != null && savedToken.isNotEmpty}",
+        );
+
+        debugPrint(
+          "TOKEN LENGTH: ${savedToken?.length ?? 0}",
+        );
+
+        // ======================================================
+        // USER MODEL
+        // ======================================================
+
+        if (admin != null) {
+          try {
+            user.value =
+                UserModel.fromJson(admin);
+          } catch (e) {
+            debugPrint(
+              "USER MODEL PARSE ERROR: $e",
+            );
+          }
         }
 
         // ======================================================
@@ -106,44 +159,66 @@ class AuthController extends GetxController {
 
         Get.snackbar(
           "Success",
-          response.data["message"]?.toString() ?? "Login successful",
+          response.data["message"]?.toString() ??
+              "Login successful",
           snackPosition: SnackPosition.BOTTOM,
         );
 
         // ======================================================
-        // NAVIGATE TO DASHBOARD
+        // DASHBOARD
         // ======================================================
 
         Get.offAllNamed("/dashboard");
-      } else {
-        // ======================================================
-        // BACKEND SUCCESS FALSE
-        // ======================================================
 
-        Get.snackbar(
-          "Login Failed",
-          response.data["message"]?.toString() ?? "Invalid email or password",
-          snackPosition: SnackPosition.BOTTOM,
-        );
+        return;
       }
-    }
-    // ==========================================================
-    // DIO ERROR
-    // ==========================================================
-    on DioException catch (e) {
-      debugPrint("========== LOGIN ERROR ==========");
-      debugPrint("STATUS CODE: ${e.response?.statusCode}");
-      debugPrint("RESPONSE DATA: ${e.response?.data}");
-      debugPrint("REQUEST URL: ${e.requestOptions.uri}");
-      debugPrint("REQUEST METHOD: ${e.requestOptions.method}");
-      debugPrint("REQUEST DATA: ${e.requestOptions.data}");
 
-      String message = "Something went wrong";
+      // ========================================================
+      // LOGIN FAILED
+      // ========================================================
+
+      Get.snackbar(
+        "Login Failed",
+        response.data["message"]?.toString() ??
+            "Invalid username or password",
+        snackPosition: SnackPosition.BOTTOM,
+      );
+    } on DioException catch (e) {
+      debugPrint(
+        "========== LOGIN ERROR ==========",
+      );
+
+      debugPrint(
+        "STATUS CODE: ${e.response?.statusCode}",
+      );
+
+      debugPrint(
+        "RESPONSE DATA: ${e.response?.data}",
+      );
+
+      debugPrint(
+        "REQUEST URL: ${e.requestOptions.uri}",
+      );
+
+      debugPrint(
+        "REQUEST METHOD: ${e.requestOptions.method}",
+      );
+
+      debugPrint(
+        "REQUEST DATA: ${e.requestOptions.data}",
+      );
+
+      String message =
+          "Something went wrong";
 
       if (e.response?.data is Map) {
-        message = e.response?.data["message"]?.toString() ?? "Login failed";
+        message =
+            e.response?.data["message"]?.toString() ??
+                "Login failed";
       } else if (e.response?.statusCode != null) {
-        message = "Bad request (${e.response?.statusCode})";
+        message =
+            "Request failed "
+            "(${e.response?.statusCode})";
       }
 
       Get.snackbar(
@@ -151,23 +226,17 @@ class AuthController extends GetxController {
         message,
         snackPosition: SnackPosition.BOTTOM,
       );
-    }
-    // ==========================================================
-    // UNKNOWN ERROR
-    // ==========================================================
-    catch (e) {
-      debugPrint("UNKNOWN LOGIN ERROR: $e");
+    } catch (e) {
+      debugPrint(
+        "UNKNOWN LOGIN ERROR: $e",
+      );
 
       Get.snackbar(
         "Error",
         "Something went wrong. Please try again.",
         snackPosition: SnackPosition.BOTTOM,
       );
-    }
-    // ==========================================================
-    // STOP LOADING
-    // ==========================================================
-    finally {
+    } finally {
       isLoading.value = false;
     }
   }
@@ -177,34 +246,32 @@ class AuthController extends GetxController {
   // ============================================================
 
   Future<void> logout() async {
-    try {
-      // Clear token and all stored data
-      await StorageService.logout();
+  try {
+    await StorageService.logout();
 
-      // Clear user
-      user.value = null;
+    user.value = null;
 
-      debugPrint("LOGOUT SUCCESS");
-      debugPrint("TOKEN CLEARED");
+    debugPrint("LOGOUT SUCCESS");
+    debugPrint("TOKEN CLEARED");
 
-      // Navigate to login
-      Get.offAllNamed("/login");
-    } catch (e) {
-      debugPrint("LOGOUT ERROR: $e");
+    Get.offAllNamed("/login");
+  } catch (e) {
+    debugPrint("LOGOUT ERROR: $e");
 
-      Get.snackbar(
-        "Error",
-        "Unable to logout",
-        snackPosition: SnackPosition.BOTTOM,
-      );
-    }
+    Get.snackbar(
+      "Error",
+      "Unable to logout",
+      snackPosition: SnackPosition.BOTTOM,
+    );
   }
+}
 
   // ============================================================
-  // TOGGLE PASSWORD VISIBILITY
+  // PASSWORD VISIBILITY
   // ============================================================
 
   void togglePasswordVisibility() {
-    isPasswordVisible.value = !isPasswordVisible.value;
+    isPasswordVisible.value =
+        !isPasswordVisible.value;
   }
 }
